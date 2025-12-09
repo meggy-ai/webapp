@@ -13,7 +13,7 @@
 | 0 | Project Setup & Infrastructure | 🔲 Not Started | 0% (0/22) | - | - | Foundation setup |
 | 1 | Core Foundation & Design System | 🔲 Not Started | 0% (0/20) | - | - | Blocked by Phase 0 |
 | 2 | Backend Integration & API Layer | 🔲 Not Started | 0% (0/20) | - | - | Blocked by Phase 1 |
-| 3 | Authentication & User Management | 🔲 Not Started | 0% (0/15) | - | - | Blocked by Phase 2 |
+| 3 | Authentication & User Management | 🔲 Not Started | 0% (0/20) | - | - | Blocked by Phase 2 |
 | 4 | Chat Module Development | 🔲 Not Started | 0% (0/25) | - | - | Blocked by Phase 2 |
 | 5 | Agent Management | 🔲 Not Started | 0% (0/15) | - | - | Blocked by Phase 4 |
 | 6 | Dashboard & Analytics | 🔲 Not Started | 0% (0/10) | - | - | Blocked by Phase 5 |
@@ -179,24 +179,36 @@
 ## 📋 Phase 3: Authentication & User Management
 
 **Status:** 🔲 Not Started  
-**Progress:** 0/15 tasks (0%)  
+**Progress:** 0/20 tasks (0%)  
 **Timeline:** Week 5-6  
 **Owner:** TBD  
 **Blocked by:** Phase 2
 
-### Parent Task 3.1: Auth Pages (0/5)
-- [ ] 3.1.1 - Create login page with form validation
-- [ ] 3.1.2 - Build registration page
-- [ ] 3.1.3 - Add password reset flow
-- [ ] 3.1.4 - Implement email verification page
-- [ ] 3.1.5 - Create OAuth integration (Google, GitHub)
+### Authentication Features Included:
+✅ User Registration (signup with email/password)  
+✅ User Login (email/password + OAuth)  
+✅ User Logout (clear session)  
+✅ Forgot Password (email reset link)  
+✅ Reset Password (new password with token)  
+✅ Email Verification (verify account)  
+✅ Session Management (JWT with refresh tokens)  
 
-### Parent Task 3.2: Auth Logic & Hooks (0/5)
-- [ ] 3.2.1 - Create useAuth hook
+### Parent Task 3.1: Auth Pages (0/7)
+- [ ] 3.1.1 - Create login page with form validation
+- [ ] 3.1.2 - Build user registration page
+- [ ] 3.1.3 - Add "Forgot Password" page
+- [ ] 3.1.4 - Create "Reset Password" page
+- [ ] 3.1.5 - Implement email verification page
+- [ ] 3.1.6 - Add OAuth integration (Google, GitHub)
+- [ ] 3.1.7 - Create logout confirmation
+
+### Parent Task 3.2: Auth Logic & Hooks (0/6)
+- [ ] 3.2.1 - Create useAuth hook (login, logout, register)
 - [ ] 3.2.2 - Implement JWT token management
 - [ ] 3.2.3 - Add protected route middleware
 - [ ] 3.2.4 - Create auth context provider
 - [ ] 3.2.5 - Implement auto-logout on token expiry
+- [ ] 3.2.6 - Add "Remember Me" functionality
 
 ### Parent Task 3.3: User Profile & Settings (0/5)
 - [ ] 3.3.1 - Build user profile page
@@ -205,10 +217,16 @@
 - [ ] 3.3.4 - Implement settings page
 - [ ] 3.3.5 - Add password change functionality
 
+### Parent Task 3.4: Auth Security & UX (0/2)
+- [ ] 3.4.1 - Add password strength indicator
+- [ ] 3.4.2 - Implement rate limiting for auth endpoints
+
 **Phase 3 Notes:**
 - Security is critical - review authentication implementation carefully
-- Consider using OAuth for easier onboarding
-- Implement proper session management
+- All password reset flows covered (forgot password → email → reset)
+- OAuth for easier onboarding (Google, GitHub)
+- Implement proper session management with refresh tokens
+- Add loading states and error messages for better UX
 
 ---
 

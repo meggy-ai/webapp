@@ -353,19 +353,72 @@ frontend/
 **Timeline:** Week 5-6  
 **Priority:** High
 
-#### Parent Task 3.1: Auth Pages
-- [ ] 3.1.1 - Create login page with form validation
-- [ ] 3.1.2 - Build registration page
-- [ ] 3.1.3 - Add password reset flow
-- [ ] 3.1.4 - Implement email verification page
-- [ ] 3.1.5 - Create OAuth integration (Google, GitHub)
+#### Authentication Features Overview
+
+**Complete Authentication System includes:**
+
+1. **User Registration** (/register)
+   - Email + password signup
+   - Form validation (password strength, email format)
+   - Terms of service acceptance
+   - Automatic email verification trigger
+   - Success message with next steps
+
+2. **User Login** (/login)
+   - Email + password authentication
+   - "Remember Me" checkbox
+   - OAuth options (Google, GitHub)
+   - Redirect to dashboard on success
+   - Error handling (invalid credentials, account not verified)
+
+3. **User Logout** 
+   - Logout button in header/sidebar
+   - Clear tokens from localStorage/cookies
+   - Redirect to landing/login page
+   - Optional: "Are you sure?" confirmation
+
+4. **Forgot Password** (/forgot-password)
+   - Email input form
+   - Send password reset email with token
+   - Success message: "Check your email"
+   - Rate limiting (prevent abuse)
+
+5. **Reset Password** (/reset-password?token=xxx)
+   - Validate reset token from email link
+   - New password + confirm password form
+   - Password strength indicator
+   - Success message + redirect to login
+   - Handle expired/invalid tokens
+
+6. **Email Verification** (/verify-email?token=xxx)
+   - Verify email from registration
+   - Show success/error message
+   - Automatic redirect to login
+   - Resend verification email option
+
+7. **Session Management**
+   - JWT access token (short-lived, 15 min)
+   - JWT refresh token (long-lived, 7 days)
+   - Auto-refresh before expiry
+   - Auto-logout on token expiration
+   - Protected routes (redirect if not authenticated)
+
+#### Parent Task 3.1: Auth Pages (UI/Forms)
+- [ ] 3.1.1 - Create login page with form validation (email + password)
+- [ ] 3.1.2 - Build user registration page with validation (email, password, confirm password, name)
+- [ ] 3.1.3 - Add "Forgot Password" page (email input to request reset)
+- [ ] 3.1.4 - Create "Reset Password" page (new password form with token validation)
+- [ ] 3.1.5 - Implement email verification page (verify account after registration)
+- [ ] 3.1.6 - Add OAuth integration (Google, GitHub social login)
+- [ ] 3.1.7 - Create logout confirmation (optional modal/redirect)
 
 #### Parent Task 3.2: Auth Logic & Hooks
-- [ ] 3.2.1 - Create useAuth hook
-- [ ] 3.2.2 - Implement JWT token management
-- [ ] 3.2.3 - Add protected route middleware
-- [ ] 3.2.4 - Create auth context provider
+- [ ] 3.2.1 - Create useAuth hook (login, logout, register, getCurrentUser)
+- [ ] 3.2.2 - Implement JWT token management (access token + refresh token)
+- [ ] 3.2.3 - Add protected route middleware (redirect to login if not authenticated)
+- [ ] 3.2.4 - Create auth context provider (global auth state)
 - [ ] 3.2.5 - Implement auto-logout on token expiry
+- [ ] 3.2.6 - Add "Remember Me" functionality (persistent sessions)
 
 #### Parent Task 3.3: User Profile & Settings
 - [ ] 3.3.1 - Build user profile page
