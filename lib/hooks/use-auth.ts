@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
-import { ENDPOINTS } from "@/lib/api/endpoints";
+import { API_ENDPOINTS as ENDPOINTS } from "@/lib/api/endpoints";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { LoginCredentials, RegisterCredentials, User } from "@/types/auth";
 import { toast } from "sonner";
