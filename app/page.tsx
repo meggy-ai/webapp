@@ -1,65 +1,139 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Bot, MessageSquare, Sparkles, Users, Zap, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between bg-white px-16 py-32 sm:items-start dark:bg-black">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl leading-10 font-semibold tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="bg-foreground text-background flex h-12 w-full items-center justify-center gap-2 rounded-full px-5 transition-colors hover:bg-[#383838] md:w-[158px] dark:hover:bg-[#ccc]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] md:w-[158px] dark:border-white/[.145] dark:hover:bg-[#1a1a1a]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="flex min-h-screen flex-col">
+      <Header />
+
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="container mx-auto px-4 py-20 text-center">
+          <div className="mx-auto max-w-4xl">
+            <Badge variant="secondary" className="mb-4">
+              <Sparkles className="mr-1 h-3 w-3" />
+              India&apos;s First Open Source AI Platform
+            </Badge>
+
+            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl">
+              Build Your Perfect <span className="text-primary">AI Assistant</span>
+            </h1>
+
+            <p className="text-muted-foreground mx-auto mb-8 max-w-2xl text-xl">
+              Create personalized AI agents for any use case. From personal assistants to AI
+              friends, Meggy AI makes it simple to build, deploy, and scale your AI solutions.
+            </p>
+
+            <div className="mb-12 flex justify-center gap-4">
+              <Button size="lg" asChild>
+                <Link href="/dashboard">
+                  Get Started
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild>
+                <Link href="/docs">View Documentation</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="container mx-auto px-4 py-20">
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-3xl font-bold">Everything You Need to Build AI Agents</h2>
+            <p className="text-muted-foreground mx-auto max-w-2xl text-xl">
+              Powerful features designed to make AI development accessible to everyone
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <Bot className="text-primary mb-2 h-10 w-10" />
+                <CardTitle>AI Agent Builder</CardTitle>
+                <CardDescription>
+                  Create custom AI agents with our intuitive visual builder. No coding required.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <MessageSquare className="text-primary mb-2 h-10 w-10" />
+                <CardTitle>Real-time Chat</CardTitle>
+                <CardDescription>
+                  Engage with your AI agents through our advanced chat interface with streaming
+                  responses.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Users className="text-primary mb-2 h-10 w-10" />
+                <CardTitle>Multi-Agent System</CardTitle>
+                <CardDescription>
+                  Deploy multiple specialized agents that can work together to solve complex tasks.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Zap className="text-primary mb-2 h-10 w-10" />
+                <CardTitle>Lightning Fast</CardTitle>
+                <CardDescription>
+                  Built with performance in mind. Get instant responses from your AI agents.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Sparkles className="text-primary mb-2 h-10 w-10" />
+                <CardTitle>Open Source</CardTitle>
+                <CardDescription>
+                  Fully open source and transparent. Customize everything to fit your needs.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <Bot className="text-primary mb-2 h-10 w-10" />
+                <CardTitle>Easy Integration</CardTitle>
+                <CardDescription>
+                  Simple APIs and webhooks to integrate AI agents into your existing applications.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="bg-muted py-20">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="mb-4 text-3xl font-bold">Ready to Build Your First AI Agent?</h2>
+            <p className="text-muted-foreground mx-auto mb-8 max-w-2xl text-xl">
+              Join thousands of developers already building the future with Meggy AI
+            </p>
+            <Button size="lg" asChild>
+              <Link href="/dashboard">
+                Start Building Now
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </section>
       </main>
+
+      <Footer />
     </div>
   );
 }
