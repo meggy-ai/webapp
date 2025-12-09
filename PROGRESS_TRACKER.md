@@ -4,23 +4,29 @@
 > **Current Phase:** 2 - Backend Integration & API Layer  
 > **Overall Progress:** 20% (2/10 phases completed)
 
+> ⚠️ **CRITICAL PROJECT SCOPE UPDATE:**  
+> **Chat, Agent, and Dashboard modules will NOT be implemented now.**  
+> These core AI features will be developed AFTER the complete Meggy AI ecosystem  
+> (bruno-core, bruno-llms, bruno-memory, etc.) is fully implemented.  
+> **Current focus:** User management, authentication, and foundational modules only.
+
 ---
 
 ## 📊 Overview
 
-| Phase | Name                             | Status         | Progress     | Start Date  | End Date    | Notes               |
-| ----- | -------------------------------- | -------------- | ------------ | ----------- | ----------- | ------------------- |
-| 0     | Project Setup & Infrastructure   | ✅ Completed   | 100% (22/22) | Dec 9, 2025 | Dec 9, 2025 | Foundation setup    |
-| 1     | Core Foundation & Design System  | ✅ Completed   | 100% (20/20) | Dec 9, 2025 | Dec 9, 2025 | Foundation complete |
-| 2     | Backend Integration & API Layer  | 🔲 Not Started | 0% (0/20)    | -           | -           | Blocked by Phase 1  |
-| 3     | Authentication & User Management | 🔲 Not Started | 0% (0/20)    | -           | -           | Blocked by Phase 2  |
-| 4     | Chat Module Development          | 🔲 Not Started | 0% (0/25)    | -           | -           | Blocked by Phase 2  |
-| 5     | Agent Management                 | 🔲 Not Started | 0% (0/15)    | -           | -           | Blocked by Phase 4  |
-| 6     | Dashboard & Analytics            | 🔲 Not Started | 0% (0/10)    | -           | -           | Blocked by Phase 5  |
-| 7     | Testing & Quality Assurance      | 🔲 Not Started | 0% (0/20)    | -           | -           | Continuous          |
-| 8     | CI/CD & DevOps                   | 🔲 Not Started | 0% (0/15)    | -           | -           | Blocked by Phase 7  |
-| 9     | Documentation & Community        | 🔲 Not Started | 0% (0/15)    | -           | -           | Continuous          |
-| 10    | Polish & Launch Preparation      | 🔲 Not Started | 0% (0/20)    | -           | -           | Blocked by Phase 8  |
+| Phase | Name                             | Status         | Progress     | Start Date  | End Date    | Notes                               |
+| ----- | -------------------------------- | -------------- | ------------ | ----------- | ----------- | ----------------------------------- |
+| 0     | Project Setup & Infrastructure   | ✅ Completed   | 100% (22/22) | Dec 9, 2025 | Dec 9, 2025 | Foundation setup                    |
+| 1     | Core Foundation & Design System  | ✅ Completed   | 100% (20/20) | Dec 9, 2025 | Dec 9, 2025 | Foundation complete                 |
+| 2     | Backend Integration & API Layer  | 🔲 Not Started | 0% (0/20)    | -           | -           | Blocked by Phase 1                  |
+| 3     | Authentication & User Management | 🔲 Not Started | 0% (0/20)    | -           | -           | Blocked by Phase 2                  |
+| 4     | Chat Module Development          | ⏸️ On Hold     | 0% (0/25)    | -           | -           | **DEFERRED** until bruno-core ready |
+| 5     | Agent Management                 | ⏸️ On Hold     | 0% (0/15)    | -           | -           | **DEFERRED** until bruno-llms ready |
+| 6     | Dashboard & Analytics            | ⏸️ On Hold     | 0% (0/10)    | -           | -           | **DEFERRED** until AI modules ready |
+| 7     | Testing & Quality Assurance      | 🔲 Not Started | 0% (0/20)    | -           | -           | Continuous                          |
+| 8     | CI/CD & DevOps                   | 🔲 Not Started | 0% (0/15)    | -           | -           | Blocked by Phase 7                  |
+| 9     | Documentation & Community        | 🔲 Not Started | 0% (0/15)    | -           | -           | Continuous                          |
+| 10    | Polish & Launch Preparation      | 🔲 Not Started | 0% (0/20)    | -           | -           | Blocked by Phase 8                  |
 
 **Legend:**
 
@@ -38,12 +44,15 @@
 **Active Tasks:** None  
 **Blockers:** None
 
+**⚠️ SCOPE CHANGE:** Focusing on user management and authentication modules only.  
+**AI modules (chat, agents, dashboard) are DEFERRED** until bruno-core ecosystem is complete.
+
 **Next Steps:**
 
-1. Begin Phase 2: Backend Integration & API Layer
-2. Set up API client configuration with Axios/Fetch
-3. Create TypeScript types for API responses
-4. Implement data fetching with TanStack Query
+1. Begin Phase 2: Backend Integration & API Layer (User Management focus)
+2. Set up API client configuration for user/auth endpoints
+3. Create TypeScript types for user and authentication APIs
+4. Implement user management data fetching with TanStack Query
 
 ---
 
@@ -148,47 +157,42 @@
 ## 📋 Phase 2: Backend Integration & API Layer
 
 **Status:** 🔲 Not Started  
-**Progress:** 0/20 tasks (0%)  
+**Progress:** 0/15 tasks (0%)  
 **Timeline:** Week 4-5  
 **Owner:** TBD  
-**Blocked by:** Phase 1
+**Scope:** User Management & Authentication Only
 
-### Parent Task 2.1: Django Backend Setup (0/5)
+⚠️ **UPDATED SCOPE:** Chat, Agent, and Dashboard modules are DEFERRED until bruno-core ecosystem is ready.
 
-- [ ] 2.1.1 - Set up Django 5.x project structure
-- [ ] 2.1.2 - Configure Django REST Framework
-- [ ] 2.1.3 - Set up Django CORS headers
-- [ ] 2.1.4 - Configure Django Channels for WebSocket
-- [ ] 2.1.5 - Set up Redis for message queue
+### Parent Task 2.1: User Management API Setup (0/5)
 
-### Parent Task 2.2: API Client Layer (0/5)
+- [ ] 2.1.1 - Set up Django 5.x project for user management
+- [ ] 2.1.2 - Configure Django REST Framework for auth endpoints
+- [ ] 2.1.3 - Set up Django CORS headers for frontend integration
+- [ ] 2.1.4 - Create user models and serializers
+- [ ] 2.1.5 - Implement JWT authentication system
 
-- [ ] 2.2.1 - Create Axios/Fetch wrapper with interceptors
+### Parent Task 2.2: Frontend API Client Layer (0/5)
+
+- [ ] 2.2.1 - Create Axios/Fetch wrapper with auth interceptors
 - [ ] 2.2.2 - Implement request/response error handling
-- [ ] 2.2.3 - Add authentication token management
-- [ ] 2.2.4 - Create API endpoint definitions
-- [ ] 2.2.5 - Set up TanStack Query configuration
+- [ ] 2.2.3 - Add JWT token management and refresh logic
+- [ ] 2.2.4 - Create user and auth API endpoint definitions
+- [ ] 2.2.5 - Set up TanStack Query for user data fetching
 
-### Parent Task 2.3: WebSocket Integration (0/5)
+### Parent Task 2.3: Authentication State Management (0/5)
 
-- [ ] 2.3.1 - Create WebSocket client wrapper
-- [ ] 2.3.2 - Implement connection state management
-- [ ] 2.3.3 - Add reconnection logic
-- [ ] 2.3.4 - Create event handlers for chat messages
-- [ ] 2.3.5 - Implement heartbeat/ping-pong mechanism
-
-### Parent Task 2.4: State Management (0/5)
-
-- [ ] 2.4.1 - Create Zustand store structure
-- [ ] 2.4.2 - Implement auth store
-- [ ] 2.4.3 - Create chat store
-- [ ] 2.4.4 - Build agent store
-- [ ] 2.4.5 - Add persistence middleware
+- [ ] 2.3.1 - Create Zustand auth store structure
+- [ ] 2.3.2 - Implement login/logout actions
+- [ ] 2.3.3 - Add user profile state management
+- [ ] 2.3.4 - Create auth persistence middleware
+- [ ] 2.3.5 - Implement auth guards and route protection
 
 **Phase 2 Notes:**
 
-- Backend and frontend can be developed in parallel by different team members
-- Ensure API contract is defined and agreed upon early
+- Focus ONLY on user management and authentication
+- Chat/Agent modules are DEFERRED until bruno-core, bruno-llms, bruno-memory are complete
+- Backend user management API can be developed in parallel
 - Mock API responses for frontend development if backend is delayed
 
 ---
