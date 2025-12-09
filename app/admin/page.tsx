@@ -31,7 +31,6 @@ import {
   Users,
   UserPlus,
   Search,
-  Filter,
   MoreVertical,
   UserCheck,
   UserX,
@@ -39,7 +38,6 @@ import {
   Mail,
   Calendar,
   Activity,
-  Settings,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleManagement } from "@/components/admin/role-management";

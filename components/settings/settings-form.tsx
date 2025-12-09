@@ -1,73 +1,78 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import { useAuth } from '@/lib/stores/auth-store'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Settings, 
-  Palette, 
-  Bell, 
-  Shield, 
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Settings,
+  Palette,
+  Bell,
+  Shield,
   Download,
   Trash2,
   Moon,
   Sun,
-  Monitor 
-} from 'lucide-react'
-import { useTheme } from 'next-themes'
-import { toast } from 'sonner'
+  Monitor,
+} from "lucide-react";
+import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
 export function SettingsForm() {
-  const { theme, setTheme } = useTheme()
-  
+  const { theme, setTheme } = useTheme();
+
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
     marketing: false,
     security: true,
-  })
+  });
 
   const [privacy, setPrivacy] = useState({
     profileVisible: true,
     activityVisible: false,
     onlineStatus: true,
-  })
+  });
 
   const [preferences, setPreferences] = useState({
-    language: 'en',
-    timezone: 'UTC',
-    dateFormat: 'MM/DD/YYYY',
-  })
+    language: "en",
+    timezone: "UTC",
+    dateFormat: "MM/DD/YYYY",
+  });
 
   const handleNotificationChange = (key: string, value: boolean) => {
-    setNotifications(prev => ({ ...prev, [key]: value }))
-    toast.success('Notification settings updated')
-  }
+    setNotifications((prev) => ({ ...prev, [key]: value }));
+    toast.success("Notification settings updated");
+  };
 
   const handlePrivacyChange = (key: string, value: boolean) => {
-    setPrivacy(prev => ({ ...prev, [key]: value }))
-    toast.success('Privacy settings updated')
-  }
+    setPrivacy((prev) => ({ ...prev, [key]: value }));
+    toast.success("Privacy settings updated");
+  };
 
   const handlePreferenceChange = (key: string, value: string) => {
-    setPreferences(prev => ({ ...prev, [key]: value }))
-    toast.success('Preferences updated')
-  }
+    setPreferences((prev) => ({ ...prev, [key]: value }));
+    toast.success("Preferences updated");
+  };
 
   const handleExportData = () => {
-    toast.success('Data export will begin shortly. You will receive an email when ready.')
-  }
+    toast.success("Data export will begin shortly. You will receive an email when ready.");
+  };
 
   const handleDeleteAccount = () => {
-    toast.error('Account deletion is not available yet. Contact support for assistance.')
-  }
+    toast.error("Account deletion is not available yet. Contact support for assistance.");
+  };
 
   return (
     <div className="space-y-6">
@@ -99,14 +104,15 @@ export function SettingsForm() {
           <Card>
             <CardHeader>
               <CardTitle>General Settings</CardTitle>
-              <CardDescription>
-                Configure your general application preferences
-              </CardDescription>
+              <CardDescription>Configure your general application preferences</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
-                <Select value={preferences.language} onValueChange={(value) => handlePreferenceChange('language', value)}>
+                <Select
+                  value={preferences.language}
+                  onValueChange={(value) => handlePreferenceChange("language", value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
@@ -122,7 +128,10 @@ export function SettingsForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="timezone">Timezone</Label>
-                <Select value={preferences.timezone} onValueChange={(value) => handlePreferenceChange('timezone', value)}>
+                <Select
+                  value={preferences.timezone}
+                  onValueChange={(value) => handlePreferenceChange("timezone", value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select timezone" />
                   </SelectTrigger>
@@ -139,7 +148,10 @@ export function SettingsForm() {
 
               <div className="space-y-2">
                 <Label htmlFor="dateFormat">Date Format</Label>
-                <Select value={preferences.dateFormat} onValueChange={(value) => handlePreferenceChange('dateFormat', value)}>
+                <Select
+                  value={preferences.dateFormat}
+                  onValueChange={(value) => handlePreferenceChange("dateFormat", value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select date format" />
                   </SelectTrigger>
@@ -159,39 +171,37 @@ export function SettingsForm() {
           <Card>
             <CardHeader>
               <CardTitle>Appearance Settings</CardTitle>
-              <CardDescription>
-                Customize how the application looks and feels
-              </CardDescription>
+              <CardDescription>Customize how the application looks and feels</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <Label>Theme</Label>
                 <div className="grid grid-cols-3 gap-4">
-                  <div 
-                    className={`cursor-pointer rounded-lg border p-4 ${theme === 'light' ? 'border-primary' : 'border-border'}`}
-                    onClick={() => setTheme('light')}
+                  <div
+                    className={`cursor-pointer rounded-lg border p-4 ${theme === "light" ? "border-primary" : "border-border"}`}
+                    onClick={() => setTheme("light")}
                   >
-                    <div className="flex items-center justify-center h-16 bg-background rounded border">
+                    <div className="bg-background flex h-16 items-center justify-center rounded border">
                       <Sun className="h-6 w-6" />
                     </div>
                     <p className="mt-2 text-center text-sm font-medium">Light</p>
                   </div>
-                  
-                  <div 
-                    className={`cursor-pointer rounded-lg border p-4 ${theme === 'dark' ? 'border-primary' : 'border-border'}`}
-                    onClick={() => setTheme('dark')}
+
+                  <div
+                    className={`cursor-pointer rounded-lg border p-4 ${theme === "dark" ? "border-primary" : "border-border"}`}
+                    onClick={() => setTheme("dark")}
                   >
-                    <div className="flex items-center justify-center h-16 bg-slate-900 rounded border">
+                    <div className="flex h-16 items-center justify-center rounded border bg-slate-900">
                       <Moon className="h-6 w-6 text-white" />
                     </div>
                     <p className="mt-2 text-center text-sm font-medium">Dark</p>
                   </div>
-                  
-                  <div 
-                    className={`cursor-pointer rounded-lg border p-4 ${theme === 'system' ? 'border-primary' : 'border-border'}`}
-                    onClick={() => setTheme('system')}
+
+                  <div
+                    className={`cursor-pointer rounded-lg border p-4 ${theme === "system" ? "border-primary" : "border-border"}`}
+                    onClick={() => setTheme("system")}
                   >
-                    <div className="flex items-center justify-center h-16 bg-gradient-to-r from-slate-100 to-slate-900 rounded border">
+                    <div className="flex h-16 items-center justify-center rounded border bg-gradient-to-r from-slate-100 to-slate-900">
                       <Monitor className="h-6 w-6" />
                     </div>
                     <p className="mt-2 text-center text-sm font-medium">System</p>
@@ -207,17 +217,17 @@ export function SettingsForm() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="font-medium">Compact Mode</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground text-sm">
                         Reduce spacing and padding for a more compact interface
                       </p>
                     </div>
                     <Switch disabled />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="font-medium">Animations</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground text-sm">
                         Enable smooth transitions and animations
                       </p>
                     </div>
@@ -233,61 +243,59 @@ export function SettingsForm() {
           <Card>
             <CardHeader>
               <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>
-                Choose what notifications you want to receive
-              </CardDescription>
+              <CardDescription>Choose what notifications you want to receive</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="font-medium">Email Notifications</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       Receive important updates via email
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={notifications.email}
-                    onCheckedChange={(checked) => handleNotificationChange('email', checked)}
+                    onCheckedChange={(checked) => handleNotificationChange("email", checked)}
                   />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="font-medium">Push Notifications</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       Get real-time notifications in your browser
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={notifications.push}
-                    onCheckedChange={(checked) => handleNotificationChange('push', checked)}
+                    onCheckedChange={(checked) => handleNotificationChange("push", checked)}
                   />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="font-medium">Marketing Communications</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       Receive updates about new features and promotions
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={notifications.marketing}
-                    onCheckedChange={(checked) => handleNotificationChange('marketing', checked)}
+                    onCheckedChange={(checked) => handleNotificationChange("marketing", checked)}
                   />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="font-medium">Security Alerts</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       Get notified about security-related events
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={notifications.security}
-                    onCheckedChange={(checked) => handleNotificationChange('security', checked)}
+                    onCheckedChange={(checked) => handleNotificationChange("security", checked)}
                     disabled
                   />
                 </div>
@@ -300,48 +308,46 @@ export function SettingsForm() {
           <Card>
             <CardHeader>
               <CardTitle>Privacy Settings</CardTitle>
-              <CardDescription>
-                Control your privacy and data sharing preferences
-              </CardDescription>
+              <CardDescription>Control your privacy and data sharing preferences</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="font-medium">Profile Visibility</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       Make your profile visible to other users
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={privacy.profileVisible}
-                    onCheckedChange={(checked) => handlePrivacyChange('profileVisible', checked)}
+                    onCheckedChange={(checked) => handlePrivacyChange("profileVisible", checked)}
                   />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="font-medium">Activity Visibility</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       Show your activity status to other users
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={privacy.activityVisible}
-                    onCheckedChange={(checked) => handlePrivacyChange('activityVisible', checked)}
+                    onCheckedChange={(checked) => handlePrivacyChange("activityVisible", checked)}
                   />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="font-medium">Online Status</p>
-                    <p className="text-sm text-muted-foreground">
-                      Show when you're online or offline
+                    <p className="text-muted-foreground text-sm">
+                      Show when you&apos;re online or offline
                     </p>
                   </div>
-                  <Switch 
+                  <Switch
                     checked={privacy.onlineStatus}
-                    onCheckedChange={(checked) => handlePrivacyChange('onlineStatus', checked)}
+                    onCheckedChange={(checked) => handlePrivacyChange("onlineStatus", checked)}
                   />
                 </div>
               </div>
@@ -353,48 +359,41 @@ export function SettingsForm() {
           <Card>
             <CardHeader>
               <CardTitle>Data Management</CardTitle>
-              <CardDescription>
-                Export your data or delete your account
-              </CardDescription>
+              <CardDescription>Export your data or delete your account</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="font-medium">Export Data</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       Download all your data in JSON format
                     </p>
                   </div>
                   <Button variant="outline" onClick={handleExportData}>
-                    <Download className="h-4 w-4 mr-2" />
+                    <Download className="mr-2 h-4 w-4" />
                     Export
                   </Button>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <p className="font-medium text-destructive">Danger Zone</p>
-                    <p className="text-sm text-muted-foreground">
-                      These actions cannot be undone
-                    </p>
+                    <p className="text-destructive font-medium">Danger Zone</p>
+                    <p className="text-muted-foreground text-sm">These actions cannot be undone</p>
                   </div>
-                  
+
                   <Alert variant="destructive">
                     <Trash2 className="h-4 w-4" />
                     <AlertDescription>
-                      Deleting your account will permanently remove all your data and cannot be undone.
+                      Deleting your account will permanently remove all your data and cannot be
+                      undone.
                     </AlertDescription>
                   </Alert>
-                  
-                  <Button 
-                    variant="destructive" 
-                    onClick={handleDeleteAccount}
-                    className="w-full"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
+
+                  <Button variant="destructive" onClick={handleDeleteAccount} className="w-full">
+                    <Trash2 className="mr-2 h-4 w-4" />
                     Delete Account
                   </Button>
                 </div>
@@ -404,5 +403,5 @@ export function SettingsForm() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
