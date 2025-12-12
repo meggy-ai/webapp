@@ -1,0 +1,22 @@
+# Production Django Dependencies
+Django==5.0.1
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+psycopg2-binary==2.9.9
+python-decouple==3.8
+PyJWT==2.8.0
+cryptography==42.0.0
+
+# Bruno Packages (will be available later)
+# bruno-core==0.1.0
+# bruno-llm==0.1.0
+# bruno-memory==0.1.0
+# bruno-abilities==0.1.0
+
+# LLM Providers
+openai==1.10.0
+# For Ollama support, we'll use requests
+requests==2.31.0
+
+# Utilities
+python-dotenv==1.0.0
