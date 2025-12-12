@@ -55,11 +55,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       setError(null);
+      console.log('Attempting login with:', { email });
       const response = await authService.login({ email, password });
+      console.log('Login successful:', response);
       setUser(response.user);
       router.push('/dashboard');
     } catch (err: any) {
-      const message = err.response?.data?.error || 'Login failed. Please try again.';
+      console.error('Login error:', err);
+      console.error('Error response:', err.response?.data);
+      const message = err.response?.data?.error || err.response?.data?.detail || err.message || 'Login failed. Please try again.';
       setError(message);
       throw new Error(message);
     } finally {
@@ -71,11 +75,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       setError(null);
+      console.log('Attempting registration with:', { email, name });
       const response = await authService.register({ email, name, password });
+      console.log('Registration successful:', response);
       setUser(response.user);
       router.push('/dashboard');
     } catch (err: any) {
-      const message = err.response?.data?.error || 'Registration failed. Please try again.';
+      console.error('Registration error:', err);
+      console.error('Error response:', err.response?.data);
+      const message = err.response?.data?.error || err.response?.data?.detail || err.message || 'Registration failed. Please try again.';
       setError(message);
       throw new Error(message);
     } finally {
