@@ -339,7 +339,10 @@ export default function ChatPage() {
 
               {/* Input Area */}
               <div className="border-t border-zinc-200 dark:border-zinc-800 p-4 bg-white dark:bg-zinc-950">
-                <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto">
+                <form
+                  onSubmit={handleSendMessage}
+                  className="max-w-4xl mx-auto"
+                >
                   <div className="flex gap-4">
                     <input
                       type="text"
