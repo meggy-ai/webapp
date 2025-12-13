@@ -71,13 +71,16 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const loadConversations = async () => {
+  const loadConversations = async (keepActiveConversation = false) => {
     try {
       const data = await conversationsAPI.getAll();
       // Ensure data is an array
       const conversationsArray = Array.isArray(data) ? data : [];
+      console.log("Loaded conversations:", conversationsArray);
       setConversations(conversationsArray);
-      if (conversationsArray.length > 0 && !activeConversation) {
+      
+      // Only auto-select first conversation if we don't have an active one and not keeping current
+      if (conversationsArray.length > 0 && !activeConversation && !keepActiveConversation) {
         setActiveConversation(conversationsArray[0].id);
         loadMessages(conversationsArray[0].id);
       }
@@ -160,8 +163,8 @@ export default function ChatPage() {
         },
       ]);
 
-      // Reload conversations to update the sidebar with new message info
-      loadConversations();
+      // Reload conversations to update the sidebar with new message info (keep current active)
+      loadConversations(true);
     } catch (error) {
       console.error("Failed to send message:", error);
       // Remove temp message on error
