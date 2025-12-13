@@ -27,6 +27,13 @@ interface Conversation {
   id: string;
   title: string;
   created_at: string;
+  updated_at?: string;
+  message_count?: number;
+  last_message?: {
+    role: string;
+    content: string;
+    created_at: string;
+  };
 }
 
 export default function ChatPage() {
@@ -152,6 +159,9 @@ export default function ChatPage() {
           timestamp: response.assistant_message.created_at,
         },
       ]);
+
+      // Reload conversations to update the sidebar with new message info
+      loadConversations();
     } catch (error) {
       console.error("Failed to send message:", error);
       // Remove temp message on error
@@ -250,15 +260,31 @@ export default function ChatPage() {
                       : "hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                    <span className="text-sm font-medium truncate">
-                      {conv.title}
+                  <div className="flex items-start gap-2 mb-2">
+                    <MessageSquare className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-semibold block truncate">
+                        {conv.title}
+                      </span>
+                      {conv.last_message && (
+                        <p className="text-xs mt-1 opacity-75 line-clamp-2">
+                          {conv.last_message.role === "user" ? "You: " : "Bruno: "}
+                          {conv.last_message.content}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs opacity-60">
+                    <span>
+                      {conv.message_count || 0} message{conv.message_count !== 1 ? "s" : ""}
+                    </span>
+                    <span>
+                      {new Date(conv.updated_at || conv.created_at).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </span>
                   </div>
-                  <p className="text-xs mt-1 opacity-75">
-                    {new Date(conv.created_at).toLocaleDateString()}
-                  </p>
                 </button>
               ))
             )}
