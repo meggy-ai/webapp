@@ -239,55 +239,99 @@ export default function ChatPage() {
               </div>
             </div>
           ) : (
-            messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-4 ${
-                  message.role === "user" ? "flex-row-reverse" : ""
-                }`}
-              >
+            <>
+              {messages.map((message) => (
                 <div
-                  className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
-                    message.role === "user"
-                      ? "bg-zinc-200 dark:bg-zinc-700"
-                      : "bg-gradient-to-br from-indigo-500 to-indigo-600"
-                  }`}
-                >
-                  {message.role === "user" ? (
-                    <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-                      {user?.name?.[0]?.toUpperCase() || "U"}
-                    </span>
-                  ) : (
-                    <Bot className="h-5 w-5 text-white" />
-                  )}
-                </div>
-
-                <div
-                  className={`flex-1 max-w-2xl ${
-                    message.role === "user" ? "text-right" : ""
+                  key={message.id}
+                  className={`flex gap-4 ${
+                    message.role === "user" ? "flex-row-reverse" : ""
                   }`}
                 >
                   <div
-                    className={`inline-block rounded-2xl px-5 py-3 ${
+                    className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
                       message.role === "user"
-                        ? "bg-indigo-600 text-white"
-                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                        ? "bg-zinc-200 dark:bg-zinc-700"
+                        : "bg-gradient-to-br from-indigo-500 to-indigo-600"
                     }`}
                   >
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {message.content}
+                    {message.role === "user" ? (
+                      <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                        {user?.name?.[0]?.toUpperCase() || "U"}
+                      </span>
+                    ) : (
+                      <Bot className="h-5 w-5 text-white" />
+                    )}
+                  </div>
+
+                  <div
+                    className={`flex-1 max-w-2xl ${
+                      message.role === "user" ? "text-right" : ""
+                    }`}
+                  >
+                    <div
+                      className={`inline-block rounded-2xl px-5 py-3 ${
+                        message.role === "user"
+                          ? "bg-indigo-600 text-white"
+                          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.content}
+                      </p>
+                    </div>
+                    <p className="text-xs text-zinc-500 mt-2 px-2">
+                      {new Date(message.timestamp).toLocaleTimeString(
+                        undefined,
+                        {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        }
+                      )}
                     </p>
                   </div>
-                  <p className="text-xs text-zinc-500 mt-2 px-2">
-                    {new Date(message.timestamp).toLocaleTimeString(undefined, {
-                      hour: "numeric",
-                      minute: "2-digit",
-                      hour12: true,
-                    })}
-                  </p>
                 </div>
-              </div>
-            ))
+              ))}
+
+              {/* Bruno Thinking Animation */}
+              {isSending && (
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-indigo-600 animate-pulse">
+                    <Bot className="h-5 w-5 text-white" />
+                  </div>
+
+                  <div className="flex-1 max-w-2xl">
+                    <div className="inline-block rounded-2xl px-5 py-4 bg-zinc-100 dark:bg-zinc-800">
+                      <div className="flex items-center gap-3">
+                        {/* Animated thinking dots */}
+                        <div className="flex gap-1.5">
+                          <div
+                            className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
+                            style={{ animationDelay: "0ms" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
+                            style={{ animationDelay: "150ms" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
+                            style={{ animationDelay: "300ms" }}
+                          ></div>
+                        </div>
+                        {/* Sparkle icon with rotation animation */}
+                        <Sparkles
+                          className="h-4 w-4 text-indigo-500 animate-spin"
+                          style={{ animationDuration: "3s" }}
+                        />
+                      </div>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                        Meggy is thinking...
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
           <div ref={messagesEndRef} />
         </div>

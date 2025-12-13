@@ -62,14 +62,18 @@ class BrunoAgent:
                 {"role": "system", "content": self.config.system_prompt}
             ]
             
-            # Add conversation history
+            # Add conversation history (excluding the last user message if it matches current input)
+            # This prevents duplicate messages when the current user message is already in history
             for msg in conversation_history:
+                # Skip if this is the current user message (already in DB before this function is called)
+                if msg["role"] == "user" and msg["content"] == user_message:
+                    continue
                 messages.append({
                     "role": msg["role"],
                     "content": msg["content"]
                 })
             
-            # Add current user message
+            # Add current user message (might be duplicate from history, but we ensure uniqueness above)
             messages.append({
                 "role": "user",
                 "content": user_message
