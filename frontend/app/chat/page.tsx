@@ -142,7 +142,9 @@ export default function ChatPage() {
       <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-zinc-600 dark:text-zinc-400">Connecting to Meggy...</p>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            Connecting to Meggy...
+          </p>
         </div>
       </div>
     );
@@ -160,7 +162,9 @@ export default function ChatPage() {
             </div>
             <div>
               <h1 className="font-bold text-lg text-indigo-600">Meggy AI</h1>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Your AI Companion</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Your AI Companion
+              </p>
             </div>
           </div>
 
@@ -214,7 +218,7 @@ export default function ChatPage() {
       {/* Main Chat Area - Full width, no sidebar */}
       <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
         {/* Messages Timeline */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-zinc-950">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center max-w-md">
@@ -225,10 +229,12 @@ export default function ChatPage() {
                   Hey there! I'm Meggy 👋
                 </h2>
                 <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">
-                  Your always-on AI companion. I'm here to chat, help, and learn about you over time.
+                  Your always-on AI companion. I'm here to chat, help, and learn
+                  about you over time.
                 </p>
                 <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                  I can set timers, create reminders, take notes, and much more. Let's start our conversation!
+                  I can set timers, create reminders, take notes, and much more.
+                  Let's start our conversation!
                 </p>
               </div>
             </div>

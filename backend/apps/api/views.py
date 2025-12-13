@@ -63,7 +63,10 @@ class AgentViewSet(viewsets.ModelViewSet):
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
-    """ViewSet for Conversation operations."""
+    """
+    ViewSet for Conversation operations.
+    Note: Each user has ONE conversation with Meggy (continuous timeline).
+    """
     permission_classes = [permissions.IsAuthenticated]
     
     def get_serializer_class(self):
@@ -72,10 +75,25 @@ class ConversationViewSet(viewsets.ModelViewSet):
         return ConversationSerializer
     
     def get_queryset(self):
+        # Users only see their single conversation
         return Conversation.objects.filter(user=self.request.user)
     
     def perform_create(self, serializer):
+        # This shouldn't normally be called - use get_or_create endpoint instead
         serializer.save(user=self.request.user)
+    
+    @action(detail=False, methods=['get'])
+    def get_or_create(self, request):
+        """
+        Get or create the user's single conversation with Meggy.
+        This is the primary way to access the conversation.
+        """
+        conversation, created = Conversation.get_or_create_for_user(request.user)
+        serializer = self.get_serializer(conversation)
+        return Response({
+            'conversation': serializer.data,
+            'created': created
+        })
     
     @action(detail=True, methods=['post'])
     def send_message(self, request, pk=None):
