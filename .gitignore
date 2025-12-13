@@ -9,6 +9,7 @@
 *.env
 .venv/
 
+.next/
 # OS
 .DS_Store
 Thumbs.db
