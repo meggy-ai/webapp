@@ -151,6 +151,11 @@ export const conversationsAPI = {
     return response.data;
   },
 
+  getOrCreate: async () => {
+    const response = await api.get("/conversations/get_or_create/");
+    return response.data;
+  },
+
   getById: async (id: string) => {
     const response = await api.get(`/conversations/${id}/`);
     return response.data;
