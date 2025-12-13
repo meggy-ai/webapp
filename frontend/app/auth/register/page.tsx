@@ -34,22 +34,22 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
       });
-      
+
       // Store tokens and user data
       localStorage.setItem("access_token", response.access_token);
       localStorage.setItem("refresh_token", response.refresh_token);
       localStorage.setItem("user", JSON.stringify(response.user));
-      
+
       // Redirect to dashboard
       router.push("/dashboard");
     } catch (err: any) {
       console.error("Registration error:", err);
       setError(
         err.response?.data?.error ||
-        err.response?.data?.message ||
-        err.response?.data?.email?.[0] ||
-        err.response?.data?.username?.[0] ||
-        "Failed to create account. Please try again."
+          err.response?.data?.message ||
+          err.response?.data?.email?.[0] ||
+          err.response?.data?.username?.[0] ||
+          "Failed to create account. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -93,7 +93,9 @@ export default function RegisterPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2 text-zinc-900 dark:text-white">Create your account</h1>
+            <h1 className="text-3xl font-bold mb-2 text-zinc-900 dark:text-white">
+              Create your account
+            </h1>
             <p className="text-zinc-600 dark:text-zinc-400">
               Get started with Meggy AI for free
             </p>
@@ -105,7 +107,9 @@ export default function RegisterPage() {
               {error && (
                 <div className="flex items-start gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                   <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+                  <p className="text-sm text-red-800 dark:text-red-200">
+                    {error}
+                  </p>
                 </div>
               )}
 

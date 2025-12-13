@@ -20,20 +20,20 @@ export default function LoginPage() {
 
     try {
       const response = await authAPI.login(email, password);
-      
+
       // Store tokens and user data
       localStorage.setItem("access_token", response.access_token);
       localStorage.setItem("refresh_token", response.refresh_token);
       localStorage.setItem("user", JSON.stringify(response.user));
-      
+
       // Redirect to dashboard
       router.push("/dashboard");
     } catch (err: any) {
       console.error("Login error:", err);
       setError(
-        err.response?.data?.error || 
-        err.response?.data?.message ||
-        "Failed to login. Please check your credentials and try again."
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "Failed to login. Please check your credentials and try again."
       );
     } finally {
       setIsLoading(false);
@@ -70,7 +70,9 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2 text-zinc-900 dark:text-white">Welcome back</h1>
+            <h1 className="text-3xl font-bold mb-2 text-zinc-900 dark:text-white">
+              Welcome back
+            </h1>
             <p className="text-zinc-600 dark:text-zinc-400">
               Sign in to your account to continue
             </p>
@@ -82,7 +84,9 @@ export default function LoginPage() {
               {error && (
                 <div className="flex items-start gap-3 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                   <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+                  <p className="text-sm text-red-800 dark:text-red-200">
+                    {error}
+                  </p>
                 </div>
               )}
 

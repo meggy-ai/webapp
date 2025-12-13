@@ -1,20 +1,21 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Add a request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('access_token');
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("access_token");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -33,18 +34,22 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // If error is 401 and we haven't tried to refresh yet
-    if (error.response?.status === 401 && !originalRequest._retry && typeof window !== 'undefined') {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      typeof window !== "undefined"
+    ) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = localStorage.getItem("refresh_token");
         if (refreshToken) {
           const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
             refresh_token: refreshToken,
           });
 
           const { access_token } = response.data;
-          localStorage.setItem('access_token', access_token);
+          localStorage.setItem("access_token", access_token);
 
           // Retry the original request with new token
           originalRequest.headers.Authorization = `Bearer ${access_token}`;
@@ -52,10 +57,10 @@ api.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh failed, clear tokens and redirect to login
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
-        window.location.href = '/auth/login';
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
+        window.location.href = "/auth/login";
         return Promise.reject(refreshError);
       }
     }
@@ -67,12 +72,12 @@ api.interceptors.response.use(
 // Auth API
 export const authAPI = {
   login: async (email: string, password: string) => {
-    const response = await api.post('/auth/login/', { email, password });
+    const response = await api.post("/auth/login/", { email, password });
     return response.data;
   },
 
   register: async (data: { name: string; email: string; password: string }) => {
-    const response = await api.post('/auth/register/', {
+    const response = await api.post("/auth/register/", {
       username: data.name,
       email: data.email,
       password: data.password,
@@ -81,12 +86,12 @@ export const authAPI = {
   },
 
   logout: async () => {
-    const response = await api.post('/auth/logout/');
+    const response = await api.post("/auth/logout/");
     return response.data;
   },
 
   refreshToken: async (refreshToken: string) => {
-    const response = await api.post('/auth/refresh/', {
+    const response = await api.post("/auth/refresh/", {
       refresh_token: refreshToken,
     });
     return response.data;
@@ -96,12 +101,12 @@ export const authAPI = {
 // User API
 export const userAPI = {
   getCurrentUser: async () => {
-    const response = await api.get('/users/me/');
+    const response = await api.get("/users/me/");
     return response.data;
   },
 
   updateProfile: async (data: any) => {
-    const response = await api.patch('/users/me/', data);
+    const response = await api.patch("/users/me/", data);
     return response.data;
   },
 };
@@ -109,7 +114,7 @@ export const userAPI = {
 // Agents API
 export const agentsAPI = {
   getAll: async () => {
-    const response = await api.get('/agents/');
+    const response = await api.get("/agents/");
     return response.data;
   },
 
@@ -119,7 +124,7 @@ export const agentsAPI = {
   },
 
   create: async (data: any) => {
-    const response = await api.post('/agents/', data);
+    const response = await api.post("/agents/", data);
     return response.data;
   },
 
@@ -137,7 +142,7 @@ export const agentsAPI = {
 // Conversations API
 export const conversationsAPI = {
   getAll: async () => {
-    const response = await api.get('/conversations/');
+    const response = await api.get("/conversations/");
     return response.data;
   },
 
@@ -147,7 +152,7 @@ export const conversationsAPI = {
   },
 
   create: async (data: any) => {
-    const response = await api.post('/conversations/', data);
+    const response = await api.post("/conversations/", data);
     return response.data;
   },
 
@@ -165,7 +170,7 @@ export const messagesAPI = {
   },
 
   create: async (data: any) => {
-    const response = await api.post('/messages/', data);
+    const response = await api.post("/messages/", data);
     return response.data;
   },
 };

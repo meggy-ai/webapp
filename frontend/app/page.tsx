@@ -76,7 +76,9 @@ export default function Home() {
 
               {/* Main Headline */}
               <h1 className="mb-8 text-5xl font-extrabold tracking-tight sm:text-7xl lg:text-8xl">
-                <span className="text-zinc-900 dark:text-white">Build Your Perfect </span>
+                <span className="text-zinc-900 dark:text-white">
+                  Build Your Perfect{" "}
+                </span>
                 <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent">
                   AI Assistant
                 </span>
@@ -174,7 +176,9 @@ export default function Home() {
                 <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg">
                   <Bot className="h-7 w-7" />
                 </div>
-                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">AI Agent Builder</h3>
+                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  AI Agent Builder
+                </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
                   Create custom AI agents with our intuitive visual builder. No
                   coding required. Configure personality, knowledge, and
@@ -187,7 +191,9 @@ export default function Home() {
                 <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg">
                   <MessageSquare className="h-7 w-7" />
                 </div>
-                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">Real-time Chat</h3>
+                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  Real-time Chat
+                </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
                   Engage with your AI agents through our advanced chat interface
                   with streaming responses, markdown support, and conversation
@@ -200,7 +206,9 @@ export default function Home() {
                 <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg">
                   <Users className="h-7 w-7" />
                 </div>
-                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">Multi-Agent System</h3>
+                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  Multi-Agent System
+                </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
                   Deploy multiple specialized agents that can work together to
                   solve complex tasks. Coordinate and orchestrate agent
@@ -213,7 +221,9 @@ export default function Home() {
                 <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg">
                   <Zap className="h-7 w-7" />
                 </div>
-                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">Lightning Fast</h3>
+                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  Lightning Fast
+                </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
                   Built with performance in mind. Get instant responses from
                   your AI agents with optimized inference and caching
@@ -226,7 +236,9 @@ export default function Home() {
                 <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-lg">
                   <Shield className="h-7 w-7" />
                 </div>
-                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">Open Source</h3>
+                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  Open Source
+                </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
                   Fully open source and transparent. Customize everything to fit
                   your needs. Community-driven development with regular updates.
@@ -238,7 +250,9 @@ export default function Home() {
                 <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-600 text-white shadow-lg">
                   <Code2 className="h-7 w-7" />
                 </div>
-                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">Easy Integration</h3>
+                <h3 className="mb-3 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  Easy Integration
+                </h3>
                 <p className="text-zinc-600 dark:text-zinc-400">
                   Simple REST APIs and webhooks to integrate AI agents into your
                   existing applications. Comprehensive documentation included.
