@@ -53,6 +53,10 @@ class BrunoAgent:
                     conversation_id, limit=10
                 )
             
+            logger.info(f"Conversation history retrieved: {len(conversation_history)} messages for {conversation_id}")
+            for i, msg in enumerate(conversation_history):
+                logger.info(f"  History {i+1}: [{msg['role']}] {msg['content'][:50]}...")
+            
             # Build messages for LLM
             messages = [
                 {"role": "system", "content": self.config.system_prompt}
@@ -70,6 +74,8 @@ class BrunoAgent:
                 "role": "user",
                 "content": user_message
             })
+            
+            logger.info(f"Total messages being sent to LLM: {len(messages)}")
             
             # Generate response using LLM
             response = await self.llm_client.generate(
