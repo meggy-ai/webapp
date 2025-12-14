@@ -79,12 +79,27 @@ class BrunoAgent:
                 logger.info(f"  History {i+1}: [{msg['role']}] {msg['content'][:50]}...")
             
             # Build messages for LLM
+            system_prompt = self.config.system_prompt
+            
+            # For task commands, prepend instruction for concise response
+            is_task_command = context and context.get("is_task_command", False)
+            if is_task_command:
+                logger.info("🔍 Task command detected - using concise response mode")
+                system_prompt = (
+                    "**CRITICAL INSTRUCTION: This is a TASK COMMAND (timer/reminder/note). "
+                    "You MUST respond with EXACTLY ONE SHORT sentence confirming the task. "
+                    "Example: 'Timer set for 4 minutes.' or '4-minute timer started.' "
+                    "DO NOT add any conversational text, questions, or additional commentary. "
+                    "JUST confirm the task action in 5-10 words maximum.**\n\n"
+                    + system_prompt
+                )
+            
             messages = [
-                {"role": "system", "content": self.config.system_prompt}
+                {"role": "system", "content": system_prompt}
             ]
             
-            # Inject long-term memories into context if available
-            if user_id:
+            # Inject long-term memories into context if available (skip for task commands)
+            if user_id and not is_task_command:
                 from core.bruno_integration.memory_extraction import memory_extractor
                 memory_context = await memory_extractor.format_memories_for_context(user_id, limit=10)
                 if memory_context:

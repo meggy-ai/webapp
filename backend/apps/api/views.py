@@ -104,12 +104,30 @@ class ConversationViewSet(viewsets.ModelViewSet):
         conversation = self.get_object()
         content = request.data.get('content')
         is_response_to_proactive = request.data.get('is_response_to_proactive', False)
+        # is_task_command is now deprecated - we'll use LLM detection instead
+        # But keep for backward compatibility
+        is_task_command_override = request.data.get('is_task_command', None)
         
         if not content:
             return Response(
                 {'error': 'Content is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        # Use LLM to detect if this is a command (unless overridden by frontend)
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        detection_result = None
+        if is_task_command_override is None:
+            logger.info(f"🔍 Using LLM to detect command for message: '{content}'")
+            
+            detection_result = async_to_sync(chat_service.command_detector.detect_command)(content)
+            is_task_command = detection_result['is_command'] and detection_result['confidence'] >= 0.7
+            
+            logger.info(f"📊 Command detection: is_command={is_task_command}, type={detection_result['command_type']}, confidence={detection_result['confidence']}")
+        else:
+            is_task_command = is_task_command_override
         
         # Record user message for engagement tracking
         conversation.record_user_message()
@@ -133,13 +151,66 @@ class ConversationViewSet(viewsets.ModelViewSet):
             conversation.save()
         
         try:
+            # Check if this is a timer command and handle it
+            timer_result = None
+            
+            # Simple regex check for timer commands as fallback
+            import re
+            timer_create_pattern = r'(?:set|create|start|make)?\s*(?:a\s+)?timer\s+(?:for\s+)?(\d+)\s*(?:min|mins|minute|minutes)'
+            timer_cancel_all_pattern = r'(?:cancel|stop|delete|clear|remove)\s+(?:all|every)\s+(?:timers?|alarms?)'
+            
+            timer_create_match = re.search(timer_create_pattern, content.lower())
+            timer_cancel_all_match = re.search(timer_cancel_all_pattern, content.lower())
+            
+            if timer_create_match or timer_cancel_all_match or (is_task_command and detection_result and detection_result.get('command_type') == 'timer'):
+                from core.services.timer_command_handler import TimerCommandHandler
+                timer_handler = TimerCommandHandler()
+                
+                logger.info(f"⏱️  Timer command detected - Create: {timer_create_match}, Cancel All: {timer_cancel_all_match}, LLM: {is_task_command and detection_result}")
+                logger.info(f"⏱️  Parsing timer command: '{content}'")
+                
+                # If regex matched for create, use simple parsing
+                if timer_create_match:
+                    duration_minutes = int(timer_create_match.group(1))
+                    timer_name = f"{duration_minutes} minute timer"
+                    
+                    command_data = {
+                        'action': 'create',
+                        'duration_minutes': duration_minutes,
+                        'timer_name': timer_name,
+                        'timer_id': None
+                    }
+                    logger.info(f"⏱️  Using regex-parsed CREATE command: {command_data}")
+                # If regex matched for cancel all
+                elif timer_cancel_all_match:
+                    command_data = {
+                        'action': 'cancel_all',
+                        'duration_minutes': None,
+                        'timer_name': None,
+                        'timer_id': None
+                    }
+                    logger.info(f"⏱️  Using regex-parsed CANCEL ALL command: {command_data}")
+                else:
+                    # Use LLM parsing
+                    command_data = async_to_sync(timer_handler.parse_command)(content)
+                    logger.info(f"⏱️  Using LLM-parsed command: {command_data}")
+                
+                if command_data['action'] != 'none':
+                    timer_result = timer_handler.execute_command(request.user, command_data)
+                    logger.info(f"⏱️  Timer command executed: {timer_result}")
+            
             # Process message through Bruno chat service
             response = async_to_sync(chat_service.process_message)(
                 conversation_id=str(conversation.id),
                 user_message=content,
                 agent_id=str(conversation.agent.id),
-                user_id=str(request.user.id)
+                user_id=str(request.user.id),
+                is_task_command=is_task_command
             )
+            
+            # If timer command was successful, append result to response
+            if timer_result and timer_result['success']:
+                response['content'] = timer_result['message']
             
             # Create assistant message with response
             assistant_message = Message.objects.create(
@@ -408,15 +479,41 @@ class TimerViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         """Create a new timer for the authenticated user."""
+        import logging
+        logger = logging.getLogger(__name__)
+        
         # Calculate end time based on duration
         duration_seconds = serializer.validated_data['duration_seconds']
         end_time = timezone.now() + timedelta(seconds=duration_seconds)
         
-        serializer.save(
+        logger.info(f"Creating timer for user: {self.request.user} (ID: {self.request.user.id}, PK: {self.request.user.pk})")
+        logger.info(f"User type: {type(self.request.user)}, ID type: {type(self.request.user.id)}")
+        
+        conversation = Conversation.objects.filter(user=self.request.user).first()
+        logger.info(f"Conversation: {conversation.id if conversation else None}")
+        
+        timer = serializer.save(
             user=self.request.user,
-            conversation=Conversation.objects.filter(user=self.request.user).first(),
+            conversation=conversation,
             end_time=end_time,
             status='active'
+        )
+        
+        logger.info(f"Timer saved - timer.user: {timer.user}, timer.user.id: {timer.user.id}, timer.user_id: {timer.user_id}")
+        
+        # Send WebSocket update
+        from channels.layers import get_channel_layer
+        channel_layer = get_channel_layer()
+        group_name = f"chat_{self.request.user.id}"
+        logger.info(f"Sending timer_update to WebSocket group: {group_name}")
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                'type': 'timer_update',
+                'action': 'created',
+                'timer_id': str(timer.id),
+                'message': f'Timer "{timer.name}" created'
+            }
         )
     
     @action(detail=True, methods=['post'])
@@ -431,6 +528,21 @@ class TimerViewSet(viewsets.ModelViewSet):
             )
         
         timer.pause()
+        
+        # Send WebSocket update
+        from channels.layers import get_channel_layer
+        channel_layer = get_channel_layer()
+        group_name = f"chat_{request.user.id}"
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                'type': 'timer_update',
+                'action': 'paused',
+                'timer_id': str(timer.id),
+                'message': f'Timer "{timer.name}" paused'
+            }
+        )
+        
         serializer = self.get_serializer(timer)
         return Response(serializer.data)
     
@@ -446,6 +558,21 @@ class TimerViewSet(viewsets.ModelViewSet):
             )
         
         timer.resume()
+        
+        # Send WebSocket update
+        from channels.layers import get_channel_layer
+        channel_layer = get_channel_layer()
+        group_name = f"chat_{request.user.id}"
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                'type': 'timer_update',
+                'action': 'resumed',
+                'timer_id': str(timer.id),
+                'message': f'Timer "{timer.name}" resumed'
+            }
+        )
+        
         serializer = self.get_serializer(timer)
         return Response(serializer.data)
     
@@ -461,6 +588,21 @@ class TimerViewSet(viewsets.ModelViewSet):
             )
         
         timer.cancel()
+        
+        # Send WebSocket update
+        from channels.layers import get_channel_layer
+        channel_layer = get_channel_layer()
+        group_name = f"chat_{request.user.id}"
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                'type': 'timer_update',
+                'action': 'cancelled',
+                'timer_id': str(timer.id),
+                'message': f'Timer "{timer.name}" cancelled'
+            }
+        )
+        
         serializer = self.get_serializer(timer)
         return Response(serializer.data)
     
@@ -470,3 +612,31 @@ class TimerViewSet(viewsets.ModelViewSet):
         timers = self.get_queryset().filter(status__in=['active', 'paused'])
         serializer = self.get_serializer(timers, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['post'])
+    def cancel_all(self, request):
+        """Cancel all active and paused timers for the user."""
+        timers = self.get_queryset().filter(status__in=['active', 'paused'])
+        count = timers.count()
+        
+        # Cancel each timer
+        for timer in timers:
+            timer.cancel()
+        
+        # Send WebSocket update
+        from channels.layers import get_channel_layer
+        channel_layer = get_channel_layer()
+        group_name = f"chat_{request.user.id}"
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                'type': 'timer_update',
+                'action': 'cancelled_all',
+                'message': f'All timers cancelled ({count} timer{"s" if count != 1 else ""})'
+            }
+        )
+        
+        return Response({
+            'message': f'Successfully cancelled {count} timer{"s" if count != 1 else ""}',
+            'count': count
+        })

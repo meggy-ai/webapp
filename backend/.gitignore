@@ -1,5 +1,8 @@
 # Backend-specific .gitignore
 
+# db files
+*.sqlite3*
+
 # Python
 __pycache__/
 *.py[cod]

@@ -136,6 +136,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message': event['message']
         }))
     
+    async def timer_update(self, event):
+        """
+        Handle timer state update event (created, paused, resumed, cancelled).
+        """
+        await self.send(text_data=json.dumps({
+            'type': 'timer_update',
+            'action': event['action'],
+            'timer_id': event.get('timer_id'),
+            'message': event.get('message', '')
+        }))
+    
     @database_sync_to_async
     def get_or_create_conversation(self):
         """Get or create conversation for the user."""

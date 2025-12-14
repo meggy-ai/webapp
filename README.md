@@ -14,7 +14,7 @@ Bruno-PA is a comprehensive web application that brings together the Bruno AI ec
 ### Key Features (Iteration 1)
 
 - ✅ User authentication and profile management
-- ✅ AI-powered chat interface with conversation management  
+- ✅ AI-powered chat interface with conversation management
 - ✅ Integration with Bruno packages (core, llm, memory)
 - ✅ Support for OpenAI and Ollama (open-source LLMs)
 - ✅ Responsive design (desktop and mobile)
@@ -114,11 +114,42 @@ python manage.py runserver
 
 Backend API will run at http://localhost:8000
 
+### Option 3: Windows Startup Script (Easiest) ⚡
+
+For Windows users, we provide a convenient startup script that automatically starts all required services:
+
+**Prerequisites:**
+
+- WSL (Windows Subsystem for Linux) with Redis installed
+- Python 3.12+ with dependencies installed (see Backend Setup above)
+- Node.js 18+ with dependencies installed (see Frontend Setup above)
+
+**Running the script:**
+
+```powershell
+.\scripts\start-dev-windows.ps1
+```
+
+This script will automatically:
+
+- ✅ Check and start Redis server (via WSL)
+- ✅ Start Django backend server (http://localhost:8000)
+- ✅ Start timer monitor service (for notifications)
+- ✅ Start Next.js frontend (http://localhost:3000)
+
+Each service runs in a separate PowerShell window for easy monitoring.
+
+**Stopping the services:**
+Simply close each PowerShell window when you're done developing.
+
+**Note:** The timer monitor service is required for timer notifications to work properly.
+
 ---
 
 ## 🔧 Technology Stack
 
 ### Frontend
+
 - **Next.js 14+** - React framework
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
@@ -128,6 +159,7 @@ Backend API will run at http://localhost:8000
 - **React Markdown** - Markdown rendering
 
 ### Backend
+
 - **Django 5.0+** - Web framework
 - **Django REST Framework** - REST API
 - **PostgreSQL** - Database
@@ -136,6 +168,7 @@ Backend API will run at http://localhost:8000
 - **Redis** - Caching (future)
 
 ### Bruno Integration
+
 - **bruno-core** - AI agent foundation
 - **bruno-llm** - LLM providers (OpenAI, Ollama)
 - **bruno-memory** - Conversation memory
@@ -225,6 +258,7 @@ pytest
 ## 📦 Deployment
 
 Deployment guides coming soon for:
+
 - Frontend: Vercel
 - Backend: Railway/Render
 - Database: Railway/Supabase

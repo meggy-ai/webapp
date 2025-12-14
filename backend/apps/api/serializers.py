@@ -102,7 +102,8 @@ class TimerSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = [
-            'id', 'three_minute_warning_sent', 'completion_notification_sent',
+            'id', 'end_time', 'status', 'time_remaining', 'time_remaining_display',
+            'three_minute_warning_sent', 'completion_notification_sent',
             'created_at', 'updated_at'
         ]
     

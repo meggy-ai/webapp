@@ -12,9 +12,11 @@ from datetime import datetime
 def run_monitor():
     """Run the monitor_timers management command."""
     try:
+        # Get the backend directory (parent of scripts folder)
+        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         result = subprocess.run(
             [sys.executable, 'manage.py', 'monitor_timers'],
-            cwd=os.path.dirname(os.path.abspath(__file__)),
+            cwd=backend_dir,
             capture_output=True,
             text=True,
             timeout=25  # Should complete well within 30 seconds

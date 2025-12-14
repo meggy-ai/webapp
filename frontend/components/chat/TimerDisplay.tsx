@@ -31,9 +31,13 @@ interface Timer {
 
 interface TimerDisplayProps {
   onTimerUpdate?: () => void;
+  wsEvent?: { type: string; data: unknown } | null;
 }
 
-export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
+export default function TimerDisplay({
+  onTimerUpdate,
+  wsEvent,
+}: TimerDisplayProps) {
   const [timers, setTimers] = useState<Timer[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -53,12 +57,45 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
     }
   };
 
+  // Initial fetch
   useEffect(() => {
     fetchTimers();
+  }, []);
 
-    // Poll for timer updates every 1 second
+  // Listen for WebSocket events
+  useEffect(() => {
+    if (wsEvent) {
+      if (
+        wsEvent.type === "timer_update" ||
+        wsEvent.type === "timer_warning" ||
+        wsEvent.type === "timer_completed"
+      ) {
+        // Refresh timers on any timer-related WebSocket event
+        fetchTimers();
+      }
+    }
+  }, [wsEvent]);
+
+  // Calculate remaining time based on end_time (client-side)
+  const getClientTimeRemaining = (timer: Timer): number => {
+    if (timer.status === "paused") {
+      return timer.time_remaining;
+    }
+    if (timer.status !== "active") {
+      return 0;
+    }
+
+    const now = new Date().getTime();
+    const endTime = new Date(timer.end_time).getTime();
+    const remainingMs = endTime - now;
+    return Math.max(0, Math.floor(remainingMs / 1000));
+  };
+
+  // Update countdown display every second (local only, no API call)
+  useEffect(() => {
     const interval = setInterval(() => {
-      fetchTimers();
+      // Force re-render to update countdown displays
+      setTimers((current) => [...current]);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -119,6 +156,16 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
     }
   };
 
+  const handleCancelAll = async () => {
+    try {
+      await timersAPI.cancelAll();
+      await fetchTimers();
+      onTimerUpdate?.();
+    } catch (error) {
+      console.error("Error cancelling all timers:", error);
+    }
+  };
+
   const formatTime = (seconds: number): string => {
     if (seconds < 0) return "00:00:00";
 
@@ -132,14 +179,16 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
   };
 
   const getTimerColor = (timer: Timer): string => {
+    const remaining = getClientTimeRemaining(timer);
     if (timer.status === "paused") return "text-gray-500";
-    if (timer.time_remaining <= 180) return "text-red-500"; // 3 minutes or less
-    if (timer.time_remaining <= 600) return "text-yellow-500"; // 10 minutes or less
+    if (remaining <= 180) return "text-red-500"; // 3 minutes or less
+    if (remaining <= 600) return "text-yellow-500"; // 10 minutes or less
     return "text-green-500";
   };
 
   const getProgressPercentage = (timer: Timer): number => {
-    const elapsed = timer.duration_seconds - timer.time_remaining;
+    const remaining = getClientTimeRemaining(timer);
+    const elapsed = timer.duration_seconds - remaining;
     return (elapsed / timer.duration_seconds) * 100;
   };
 
@@ -158,62 +207,78 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
           <Clock className="h-5 w-5" />
           Active Timers
         </h3>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" variant="outline">
-              <Plus className="h-4 w-4 mr-2" />
-              New Timer
+        <div className="flex items-center gap-2">
+          {timers.length > 0 && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleCancelAll}
+              title="Cancel all active timers"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancel All
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Timer</DialogTitle>
-              <DialogDescription>
-                Set a timer to help you stay on track
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="timer-name">Timer Name</Label>
-                <Input
-                  id="timer-name"
-                  placeholder="e.g., Break time, Focus session"
-                  value={newTimerName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setNewTimerName(e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="timer-duration">Duration (minutes)</Label>
-                <Input
-                  id="timer-duration"
-                  type="number"
-                  min="1"
-                  value={newTimerMinutes}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setNewTimerMinutes(e.target.value)
-                  }
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                onClick={handleCreateTimer}
-                disabled={creating || !newTimerName.trim()}
-              >
-                {creating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  "Create Timer"
-                )}
+          )}
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                New Timer
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Timer</DialogTitle>
+                <DialogDescription>
+                  Set a timer to help you stay on track
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="timer-name">Timer Name</Label>
+                  <Input
+                    id="timer-name"
+                    placeholder="e.g., Break time, Focus session"
+                    value={newTimerName}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setNewTimerName(e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="timer-duration">Duration (minutes)</Label>
+                  <Input
+                    id="timer-duration"
+                    type="number"
+                    min="1"
+                    value={newTimerMinutes}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setNewTimerMinutes(e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={handleCreateTimer}
+                  disabled={creating || !newTimerName.trim()}
+                >
+                  {creating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Timer"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {timers.length === 0 ? (
@@ -267,16 +332,16 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
                       timer
                     )}`}
                   >
-                    {formatTime(timer.time_remaining)}
+                    {formatTime(getClientTimeRemaining(timer))}
                   </div>
 
                   {/* Progress bar */}
                   <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all ${
-                        timer.time_remaining <= 180
+                        getClientTimeRemaining(timer) <= 180
                           ? "bg-red-500"
-                          : timer.time_remaining <= 600
+                          : getClientTimeRemaining(timer) <= 600
                             ? "bg-yellow-500"
                             : "bg-green-500"
                       }`}

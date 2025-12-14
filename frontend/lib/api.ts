@@ -185,6 +185,7 @@ export const conversationsAPI = {
     const response = await api.post(`/conversations/${id}/send_message/`, {
       content,
       is_response_to_proactive: isResponseToProactive,
+      // Command detection is now done by backend using LLM
     });
     return response.data;
   },
@@ -274,6 +275,11 @@ export const timersAPI = {
 
   cancel: async (id: string) => {
     const response = await api.post(`/timers/${id}/cancel/`);
+    return response.data;
+  },
+
+  cancelAll: async () => {
+    const response = await api.post("/timers/cancel_all/");
     return response.data;
   },
 

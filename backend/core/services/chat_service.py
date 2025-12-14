@@ -15,6 +15,7 @@ from core.bruno_integration import (
     DjangoMemoryBackend,
     create_default_abilities
 )
+from core.services.command_detector import CommandDetector
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,9 @@ class ChatService:
         # Initialize notes ability
         from core.bruno_integration.notes_ability import NotesAbility
         self.notes_ability = NotesAbility()
+        
+        # Initialize command detector
+        self.command_detector = CommandDetector()
         
         logger.info("Initialized ChatService")
     
@@ -89,7 +93,8 @@ class ChatService:
         conversation_id: str,
         user_message: str,
         agent_id: str,
-        user_id: str = None
+        user_id: str = None,
+        is_task_command: bool = False
     ) -> Dict[str, Any]:
         """
         Process a user message and generate a response.
@@ -99,6 +104,7 @@ class ChatService:
             user_message: User's input message
             agent_id: ID of the agent to use
             user_id: ID of the user (for notes functionality)
+            is_task_command: Whether this is a task command (timer, reminder, note)
             
         Returns:
             Dict with response content and metadata
@@ -111,7 +117,8 @@ class ChatService:
             response = await agent.process_message(
                 user_message=user_message,
                 conversation_id=conversation_id,
-                user_id=user_id
+                user_id=user_id,
+                context={"is_task_command": is_task_command}
             )
             
             return response

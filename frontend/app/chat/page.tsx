@@ -14,7 +14,7 @@ import {
   BellRing,
   StickyNote,
 } from "lucide-react";
-import { conversationsAPI, messagesAPI } from "@/lib/api";
+import { conversationsAPI, messagesAPI, timersAPI } from "@/lib/api";
 import TimerDisplay from "@/components/chat/TimerDisplay";
 
 interface Message {
@@ -23,6 +23,9 @@ interface Message {
   role: "user" | "assistant" | "system";
   timestamp: string;
 }
+
+// Note: Timer command parsing and detection is now done by the backend using LLM
+// No client-side regex parsing is needed anymore
 
 export default function ChatPage() {
   const router = useRouter();
@@ -37,6 +40,10 @@ export default function ChatPage() {
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showTimers, setShowTimers] = useState(false);
+  const [wsTimerEvent, setWsTimerEvent] = useState<{
+    type: string;
+    data: any;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -124,6 +131,12 @@ export default function ChatPage() {
                 timestamp: new Date().toISOString(),
               },
             ]);
+
+            // Trigger timer update
+            setWsTimerEvent({ type: "timer_completed", data });
+          } else if (data.type === "timer_update") {
+            // Timer state changed (created, paused, resumed, cancelled, or tick)
+            setWsTimerEvent({ type: "timer_update", data });
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
@@ -155,63 +168,16 @@ export default function ChatPage() {
 
   const playNotificationSound = (type: "warning" | "completion") => {
     try {
-      // Create audio context for playing notification sounds
-      const audioContext = new (
-        window.AudioContext || (window as any).webkitAudioContext
-      )();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+      const soundFile =
+        type === "warning"
+          ? "/sounds/timer-warning.wav"
+          : "/sounds/timer-complete.wav";
 
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      if (type === "warning") {
-        // Warning: 2 beeps at 800Hz
-        oscillator.frequency.value = 800;
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.1);
-
-        // Second beep
-        setTimeout(() => {
-          const osc2 = audioContext.createOscillator();
-          const gain2 = audioContext.createGain();
-          osc2.connect(gain2);
-          gain2.connect(audioContext.destination);
-          osc2.frequency.value = 800;
-          gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
-          osc2.start();
-          osc2.stop(audioContext.currentTime + 0.1);
-        }, 200);
-      } else {
-        // Completion: 3 ascending beeps
-        oscillator.frequency.value = 600;
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.15);
-
-        setTimeout(() => {
-          const osc2 = audioContext.createOscillator();
-          const gain2 = audioContext.createGain();
-          osc2.connect(gain2);
-          gain2.connect(audioContext.destination);
-          osc2.frequency.value = 800;
-          gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
-          osc2.start();
-          osc2.stop(audioContext.currentTime + 0.15);
-        }, 200);
-
-        setTimeout(() => {
-          const osc3 = audioContext.createOscillator();
-          const gain3 = audioContext.createGain();
-          osc3.connect(gain3);
-          gain3.connect(audioContext.destination);
-          osc3.frequency.value = 1000;
-          gain3.gain.setValueAtTime(0.3, audioContext.currentTime);
-          osc3.start();
-          osc3.stop(audioContext.currentTime + 0.2);
-        }, 400);
-      }
+      const audio = new Audio(soundFile);
+      audio.volume = 0.6; // Adjust volume (0.0 to 1.0)
+      audio.play().catch((error) => {
+        console.error("Error playing notification sound:", error);
+      });
     } catch (error) {
       console.error("Error playing notification sound:", error);
     }
@@ -327,7 +293,7 @@ export default function ChatPage() {
     setInput("");
     setIsSending(true);
 
-    // Optimistically add user message
+    // Optimistically add user message FIRST
     const tempUserMsg: Message = {
       id: `temp-${Date.now()}`,
       content: userMessage,
@@ -336,7 +302,13 @@ export default function ChatPage() {
     };
     setMessages((prev) => [...prev, tempUserMsg]);
 
+    // Timer commands are now handled by the backend via LLM
+    // No need for client-side parsing
+
     try {
+      // Command detection and timer handling now done by backend using LLM
+      console.log("📤 Sending message to backend for LLM command detection");
+
       const response = await conversationsAPI.sendMessage(
         conversationId,
         userMessage,
@@ -563,14 +535,17 @@ export default function ChatPage() {
                         </p>
                       </div>
                       <p className="text-xs text-zinc-500 mt-2 px-2">
-                        {new Date(message.timestamp).toLocaleTimeString(
-                          undefined,
-                          {
-                            hour: "numeric",
-                            minute: "2-digit",
-                            hour12: true,
-                          }
-                        )}
+                        {message.timestamp &&
+                        !isNaN(new Date(message.timestamp).getTime())
+                          ? new Date(message.timestamp).toLocaleTimeString(
+                              undefined,
+                              {
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              }
+                            )
+                          : ""}
                       </p>
                     </div>
                   </div>
@@ -653,6 +628,7 @@ export default function ChatPage() {
           <div className="w-80 border-l border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 overflow-y-auto">
             <div className="p-4">
               <TimerDisplay
+                wsEvent={wsTimerEvent}
                 onTimerUpdate={() => {
                   /* Timer updated */
                 }}

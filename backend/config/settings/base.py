@@ -172,8 +172,13 @@ ASGI_APPLICATION = 'config.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {
-        # Use in-memory channel layer for development (no Redis needed)
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        # Use Redis for multi-process WebSocket communication
+        # Install Redis and channels-redis: pip install channels-redis
+        # Start Redis: redis-server
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
     },
 }
 

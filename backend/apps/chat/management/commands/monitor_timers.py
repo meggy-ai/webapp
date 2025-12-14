@@ -1,8 +1,9 @@
 """
 Management command to monitor active timers and send notifications.
-Should be run periodically (e.g., every 30-60 seconds) via a scheduler like cron or celery beat.
+Runs continuously in a loop, checking every 10 seconds.
 """
 import asyncio
+import time
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta
@@ -15,6 +16,21 @@ class Command(BaseCommand):
     help = 'Monitor active timers and send notifications for warnings and completions'
 
     def handle(self, *args, **options):
+        """Check all active timers and send notifications continuously."""
+        self.stdout.write(self.style.SUCCESS('Starting timer monitor service...'))
+        
+        while True:
+            try:
+                self.check_timers()
+                time.sleep(10)  # Check every 10 seconds
+            except KeyboardInterrupt:
+                self.stdout.write(self.style.WARNING('Stopping timer monitor service...'))
+                break
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f'Error in timer monitor: {str(e)}'))
+                time.sleep(10)
+    
+    def check_timers(self):
         """Check all active timers and send notifications."""
         channel_layer = get_channel_layer()
         now = timezone.now()
@@ -24,8 +40,25 @@ class Command(BaseCommand):
         
         self.stdout.write(f"Checking {active_timers.count()} active timers...")
         
+        # Send periodic update for all active timers (for real-time countdown)
+        for timer in active_timers:
+            group_name = f"chat_{str(timer.user.id)}"
+            try:
+                async_to_sync(channel_layer.group_send)(
+                    group_name,
+                    {
+                        'type': 'timer_update',
+                        'action': 'tick',
+                        'timer_id': str(timer.id),
+                    }
+                )
+            except Exception:
+                pass  # Silent fail for tick updates
+        
         for timer in active_timers:
             time_remaining = timer.get_time_remaining()
+            
+            self.stdout.write(f"Timer '{timer.name}': {time_remaining}s remaining, warning_sent={timer.three_minute_warning_sent}")
             
             # Check if timer has completed
             if time_remaining <= 0:
@@ -33,9 +66,10 @@ class Command(BaseCommand):
                 continue
             
             # Check if 3-minute warning should be sent
-            # Send warning when between 3 minutes and 2:30 minutes remaining
-            # (30-second window to avoid missing it)
-            if 150 <= time_remaining <= 180 and not timer.three_minute_warning_sent:
+            # Send warning when less than 3 minutes remaining (wider window)
+            # Use 185 seconds (3:05) to ensure we catch it
+            if time_remaining <= 185 and not timer.three_minute_warning_sent:
+                self.stdout.write(f"⚠️ Triggering 3-minute warning for '{timer.name}'")
                 self.handle_three_minute_warning(timer, channel_layer)
     
     def handle_timer_completion(self, timer, channel_layer):
@@ -46,12 +80,13 @@ class Command(BaseCommand):
             self.style.SUCCESS(f"Timer '{timer.name}' completed for user {timer.user.email}")
         )
         
-        # Send WebSocket notification
-        group_name = f"chat_{timer.user.id}"
+        # Send WebSocket notification  
+        group_name = f"chat_{str(timer.user.id)}"
+        self.stdout.write(f"DEBUG: Timer user ID = {timer.user.id}, Group name = {group_name}")
         
         notification_data = {
             'type': 'timer_completed',
-            'timer_id': timer.id,
+            'timer_id': str(timer.id),
             'timer_name': timer.name,
             'message': f"⏰ Timer '{timer.name}' has completed!"
         }
@@ -79,11 +114,12 @@ class Command(BaseCommand):
         )
         
         # Send WebSocket notification
-        group_name = f"chat_{timer.user.id}"
+        group_name = f"chat_{str(timer.user.id)}"
+        self.stdout.write(f"DEBUG: Timer user ID = {timer.user.id}, Group name = {group_name}")
         
         notification_data = {
             'type': 'timer_warning',
-            'timer_id': timer.id,
+            'timer_id': str(timer.id),
             'timer_name': timer.name,
             'time_remaining': timer.get_time_remaining(),
             'message': f"⏰ Timer '{timer.name}' will complete in 3 minutes!"
