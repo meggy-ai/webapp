@@ -17,31 +17,29 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
   return (
     <div data-dialog-open={open}>
       {React.Children.map(children, (child) =>
-        React.isValidElement(child) ? React.cloneElement(child as any, { open, onOpenChange }) : child
+        React.isValidElement(child)
+          ? React.cloneElement(child as any, { open, onOpenChange })
+          : child
       )}
     </div>
   );
 };
 
-const DialogTrigger: React.FC<{ asChild?: boolean; children: React.ReactNode; open?: boolean; onOpenChange?: (open: boolean) => void }> = ({
-  children,
-  open,
-  onOpenChange,
-}) => {
-  return (
-    <div onClick={() => onOpenChange?.(!open)}>
-      {children}
-    </div>
-  );
+const DialogTrigger: React.FC<{
+  asChild?: boolean;
+  children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}> = ({ children, open, onOpenChange }) => {
+  return <div onClick={() => onOpenChange?.(!open)}>{children}</div>;
 };
 
-const DialogContent: React.FC<DialogContentProps & { open?: boolean; onOpenChange?: (open: boolean) => void }> = ({
-  children,
-  className = "",
-  open,
-  onOpenChange,
-  ...props
-}) => {
+const DialogContent: React.FC<
+  DialogContentProps & {
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+  }
+> = ({ children, className = "", open, onOpenChange, ...props }) => {
   if (!open) return null;
 
   return (
@@ -92,10 +90,9 @@ const DialogTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({
   />
 );
 
-const DialogDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement>> = ({
-  className = "",
-  ...props
-}) => (
+const DialogDescription: React.FC<
+  React.HTMLAttributes<HTMLParagraphElement>
+> = ({ className = "", ...props }) => (
   <p className={`text-sm text-zinc-500 ${className}`} {...props} />
 );
 

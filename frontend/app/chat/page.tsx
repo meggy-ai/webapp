@@ -99,7 +99,7 @@ export default function ChatPage() {
           } else if (data.type === "timer_warning") {
             // Play warning sound
             playNotificationSound("warning");
-            
+
             // Add system message
             setMessages((prev) => [
               ...prev,
@@ -113,7 +113,7 @@ export default function ChatPage() {
           } else if (data.type === "timer_completed") {
             // Play completion sound
             playNotificationSound("completion");
-            
+
             // Add system message
             setMessages((prev) => [
               ...prev,
@@ -156,7 +156,9 @@ export default function ChatPage() {
   const playNotificationSound = (type: "warning" | "completion") => {
     try {
       // Create audio context for playing notification sounds
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new (
+        window.AudioContext || (window as any).webkitAudioContext
+      )();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -464,193 +466,197 @@ export default function ChatPage() {
       <main className="flex-1 flex overflow-hidden">
         {/* Chat Section */}
         <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
-        {/* Messages Timeline */}
-        <div
-          ref={messagesContainerRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-zinc-950"
-        >
-          {/* Loading more indicator */}
-          {isLoadingMore && (
-            <div className="text-center py-2">
-              <Loader2 className="h-5 w-5 animate-spin text-indigo-600 mx-auto" />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Loading more messages...
-              </p>
-            </div>
-          )}
-
-          {/* Load more prompt or end indicator */}
-          {messages.length > 0 && (
-            <div className="text-center py-2">
-              {!isLoadingMore && hasMoreMessages ? (
-                <button
-                  onClick={loadMoreMessages}
-                  className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-                >
-                  ↑ Scroll up to load older messages
-                </button>
-              ) : !isLoadingMore && !hasMoreMessages ? (
-                <div className="flex items-center justify-center gap-2 text-zinc-400 dark:text-zinc-600">
-                  <div className="h-px w-12 bg-zinc-200 dark:bg-zinc-800"></div>
-                  <span className="text-xs">Beginning of conversation</span>
-                  <div className="h-px w-12 bg-zinc-200 dark:bg-zinc-800"></div>
-                </div>
-              ) : null}
-            </div>
-          )}
-
-          {messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center max-w-md">
-                <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl mb-6">
-                  <Sparkles className="h-10 w-10" />
-                </div>
-                <h2 className="text-3xl font-bold text-zinc-900 dark:text-white mb-3">
-                  Hey there! I'm Meggy 👋
-                </h2>
-                <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">
-                  Your always-on AI companion. I'm here to chat, help, and learn
-                  about you over time.
-                </p>
-                <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                  I can set timers, create reminders, take notes, and much more.
-                  Let's start our conversation!
+          {/* Messages Timeline */}
+          <div
+            ref={messagesContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-zinc-950"
+          >
+            {/* Loading more indicator */}
+            {isLoadingMore && (
+              <div className="text-center py-2">
+                <Loader2 className="h-5 w-5 animate-spin text-indigo-600 mx-auto" />
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  Loading more messages...
                 </p>
               </div>
-            </div>
-          ) : (
-            <>
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex gap-4 ${
-                    message.role === "user" ? "flex-row-reverse" : ""
-                  }`}
-                >
-                  <div
-                    className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
-                      message.role === "user"
-                        ? "bg-zinc-200 dark:bg-zinc-700"
-                        : "bg-gradient-to-br from-indigo-500 to-indigo-600"
-                    }`}
-                  >
-                    {message.role === "user" ? (
-                      <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-                        {user?.name?.[0]?.toUpperCase() || "U"}
-                      </span>
-                    ) : (
-                      <Bot className="h-5 w-5 text-white" />
-                    )}
-                  </div>
+            )}
 
+            {/* Load more prompt or end indicator */}
+            {messages.length > 0 && (
+              <div className="text-center py-2">
+                {!isLoadingMore && hasMoreMessages ? (
+                  <button
+                    onClick={loadMoreMessages}
+                    className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  >
+                    ↑ Scroll up to load older messages
+                  </button>
+                ) : !isLoadingMore && !hasMoreMessages ? (
+                  <div className="flex items-center justify-center gap-2 text-zinc-400 dark:text-zinc-600">
+                    <div className="h-px w-12 bg-zinc-200 dark:bg-zinc-800"></div>
+                    <span className="text-xs">Beginning of conversation</span>
+                    <div className="h-px w-12 bg-zinc-200 dark:bg-zinc-800"></div>
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            {messages.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center max-w-md">
+                  <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl mb-6">
+                    <Sparkles className="h-10 w-10" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-zinc-900 dark:text-white mb-3">
+                    Hey there! I'm Meggy 👋
+                  </h2>
+                  <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">
+                    Your always-on AI companion. I'm here to chat, help, and
+                    learn about you over time.
+                  </p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                    I can set timers, create reminders, take notes, and much
+                    more. Let's start our conversation!
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {messages.map((message) => (
                   <div
-                    className={`flex-1 max-w-2xl ${
-                      message.role === "user" ? "text-right" : ""
+                    key={message.id}
+                    className={`flex gap-4 ${
+                      message.role === "user" ? "flex-row-reverse" : ""
                     }`}
                   >
                     <div
-                      className={`inline-block rounded-2xl px-5 py-3 ${
+                      className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
                         message.role === "user"
-                          ? "bg-indigo-600 text-white"
-                          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                          ? "bg-zinc-200 dark:bg-zinc-700"
+                          : "bg-gradient-to-br from-indigo-500 to-indigo-600"
                       }`}
                     >
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {message.content}
-                      </p>
-                    </div>
-                    <p className="text-xs text-zinc-500 mt-2 px-2">
-                      {new Date(message.timestamp).toLocaleTimeString(
-                        undefined,
-                        {
-                          hour: "numeric",
-                          minute: "2-digit",
-                          hour12: true,
-                        }
+                      {message.role === "user" ? (
+                        <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                          {user?.name?.[0]?.toUpperCase() || "U"}
+                        </span>
+                      ) : (
+                        <Bot className="h-5 w-5 text-white" />
                       )}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                    </div>
 
-              {/* Bruno Thinking Animation */}
-              {isSending && (
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-indigo-600 animate-pulse">
-                    <Bot className="h-5 w-5 text-white" />
-                  </div>
-
-                  <div className="flex-1 max-w-2xl">
-                    <div className="inline-block rounded-2xl px-5 py-4 bg-zinc-100 dark:bg-zinc-800">
-                      <div className="flex items-center gap-3">
-                        {/* Animated thinking dots */}
-                        <div className="flex gap-1.5">
-                          <div
-                            className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
-                            style={{ animationDelay: "0ms" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
-                            style={{ animationDelay: "150ms" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
-                            style={{ animationDelay: "300ms" }}
-                          ></div>
-                        </div>
-                        {/* Sparkle icon with rotation animation */}
-                        <Sparkles
-                          className="h-4 w-4 text-indigo-500 animate-spin"
-                          style={{ animationDuration: "3s" }}
-                        />
+                    <div
+                      className={`flex-1 max-w-2xl ${
+                        message.role === "user" ? "text-right" : ""
+                      }`}
+                    >
+                      <div
+                        className={`inline-block rounded-2xl px-5 py-3 ${
+                          message.role === "user"
+                            ? "bg-indigo-600 text-white"
+                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                        }`}
+                      >
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                          {message.content}
+                        </p>
                       </div>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                        Meggy is thinking...
+                      <p className="text-xs text-zinc-500 mt-2 px-2">
+                        {new Date(message.timestamp).toLocaleTimeString(
+                          undefined,
+                          {
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true,
+                          }
+                        )}
                       </p>
                     </div>
                   </div>
-                </div>
-              )}
-            </>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+                ))}
 
-        {/* Input Area */}
-        <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
-          <form onSubmit={handleSendMessage} className="flex gap-3">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Chat with Meggy..."
-              disabled={isSending}
-              className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-5 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || isSending}
-              className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
-            >
-              {isSending ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Send className="h-5 w-5" />
-              )}
-            </button>
-          </form>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center mt-3">
-            Meggy is always learning and improving. Your privacy is protected.
-          </p>
-        </div>
+                {/* Bruno Thinking Animation */}
+                {isSending && (
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-indigo-600 animate-pulse">
+                      <Bot className="h-5 w-5 text-white" />
+                    </div>
+
+                    <div className="flex-1 max-w-2xl">
+                      <div className="inline-block rounded-2xl px-5 py-4 bg-zinc-100 dark:bg-zinc-800">
+                        <div className="flex items-center gap-3">
+                          {/* Animated thinking dots */}
+                          <div className="flex gap-1.5">
+                            <div
+                              className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
+                              style={{ animationDelay: "0ms" }}
+                            ></div>
+                            <div
+                              className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
+                              style={{ animationDelay: "150ms" }}
+                            ></div>
+                            <div
+                              className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce"
+                              style={{ animationDelay: "300ms" }}
+                            ></div>
+                          </div>
+                          {/* Sparkle icon with rotation animation */}
+                          <Sparkles
+                            className="h-4 w-4 text-indigo-500 animate-spin"
+                            style={{ animationDuration: "3s" }}
+                          />
+                        </div>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                          Meggy is thinking...
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Area */}
+          <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
+            <form onSubmit={handleSendMessage} className="flex gap-3">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Chat with Meggy..."
+                disabled={isSending}
+                className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-5 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || isSending}
+                className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+              >
+                {isSending ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
+              </button>
+            </form>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center mt-3">
+              Meggy is always learning and improving. Your privacy is protected.
+            </p>
+          </div>
         </div>
 
         {/* Timer Panel - Right Side */}
         {showTimers && (
           <div className="w-80 border-l border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 overflow-y-auto">
             <div className="p-4">
-              <TimerDisplay onTimerUpdate={() => {/* Timer updated */}} />
+              <TimerDisplay
+                onTimerUpdate={() => {
+                  /* Timer updated */
+                }}
+              />
             </div>
           </div>
         )}

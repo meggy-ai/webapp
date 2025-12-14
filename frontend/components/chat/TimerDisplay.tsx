@@ -4,14 +4,7 @@ import React, { useState, useEffect } from "react";
 import { timersAPI } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Play,
-  Pause,
-  X,
-  Clock,
-  Plus,
-  Loader2,
-} from "lucide-react";
+import { Play, Pause, X, Clock, Plus, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -62,7 +55,7 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
 
   useEffect(() => {
     fetchTimers();
-    
+
     // Poll for timer updates every 1 second
     const interval = setInterval(() => {
       fetchTimers();
@@ -128,7 +121,7 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
 
   const formatTime = (seconds: number): string => {
     if (seconds < 0) return "00:00:00";
-    
+
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
@@ -186,7 +179,9 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
                   id="timer-name"
                   placeholder="e.g., Break time, Focus session"
                   value={newTimerName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTimerName(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setNewTimerName(e.target.value)
+                  }
                 />
               </div>
               <div>
@@ -196,7 +191,9 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
                   type="number"
                   min="1"
                   value={newTimerMinutes}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTimerMinutes(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setNewTimerMinutes(e.target.value)
+                  }
                 />
               </div>
             </div>
@@ -272,7 +269,7 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
                   >
                     {formatTime(timer.time_remaining)}
                   </div>
-                  
+
                   {/* Progress bar */}
                   <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
@@ -280,8 +277,8 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
                         timer.time_remaining <= 180
                           ? "bg-red-500"
                           : timer.time_remaining <= 600
-                          ? "bg-yellow-500"
-                          : "bg-green-500"
+                            ? "bg-yellow-500"
+                            : "bg-green-500"
                       }`}
                       style={{ width: `${getProgressPercentage(timer)}%` }}
                     />
@@ -291,9 +288,7 @@ export default function TimerDisplay({ onTimerUpdate }: TimerDisplayProps) {
                     <span>
                       {timer.status === "paused" ? "Paused" : "Running"}
                     </span>
-                    <span>
-                      Total: {formatTime(timer.duration_seconds)}
-                    </span>
+                    <span>Total: {formatTime(timer.duration_seconds)}</span>
                   </div>
                 </div>
               </CardContent>
