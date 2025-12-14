@@ -47,6 +47,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     initializeChat();
@@ -293,6 +294,9 @@ export default function ChatPage() {
     setInput("");
     setIsSending(true);
 
+    // Keep focus on input
+    inputRef.current?.focus();
+
     // Optimistically add user message FIRST
     const tempUserMsg: Message = {
       id: `temp-${Date.now()}`,
@@ -336,11 +340,20 @@ export default function ChatPage() {
           timestamp: response.assistant_message.created_at,
         },
       ]);
+
+      // Refocus input after response
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
     } catch (error) {
       console.error("Failed to send message:", error);
       setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
     } finally {
       setIsSending(false);
+      // Ensure focus returns to input
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
     }
   };
 
@@ -598,11 +611,13 @@ export default function ChatPage() {
           <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
             <form onSubmit={handleSendMessage} className="flex gap-3">
               <input
+                ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Chat with Meggy..."
                 disabled={isSending}
+                autoFocus
                 className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-5 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
               />
               <button
