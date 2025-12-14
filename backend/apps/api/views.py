@@ -256,6 +256,90 @@ class ConversationViewSet(viewsets.ModelViewSet):
                 if conversation.total_proactive_messages > 0 else 0
             )
         })
+    
+    @action(detail=True, methods=['get'])
+    def proactivity_settings(self, request, pk=None):
+        """Get current proactivity settings for the conversation."""
+        conversation = self.get_object()
+        
+        return Response({
+            'proactive_messages_enabled': conversation.proactive_messages_enabled,
+            'auto_adjust_proactivity': conversation.auto_adjust_proactivity,
+            'proactivity_level': conversation.proactivity_level,
+            'min_proactivity_level': conversation.min_proactivity_level,
+            'max_proactivity_level': conversation.max_proactivity_level,
+            'quiet_hours_start': conversation.quiet_hours_start.isoformat() if conversation.quiet_hours_start else None,
+            'quiet_hours_end': conversation.quiet_hours_end.isoformat() if conversation.quiet_hours_end else None,
+            # Stats
+            'total_proactive_messages': conversation.total_proactive_messages,
+            'proactive_responses_received': conversation.proactive_responses_received,
+            'response_rate': (
+                conversation.proactive_responses_received / conversation.total_proactive_messages
+                if conversation.total_proactive_messages > 0 else 0
+            )
+        })
+    
+    @action(detail=True, methods=['patch'])
+    def update_proactivity_settings(self, request, pk=None):
+        """Update proactivity settings for the conversation."""
+        conversation = self.get_object()
+        
+        # Update enabled/disabled
+        if 'proactive_messages_enabled' in request.data:
+            conversation.proactive_messages_enabled = request.data['proactive_messages_enabled']
+        
+        # Update auto-adjust setting
+        if 'auto_adjust_proactivity' in request.data:
+            conversation.auto_adjust_proactivity = request.data['auto_adjust_proactivity']
+        
+        # Update manual proactivity level
+        if 'proactivity_level' in request.data:
+            level = int(request.data['proactivity_level'])
+            if 1 <= level <= 10:
+                conversation.proactivity_level = level
+        
+        # Update min/max bounds
+        if 'min_proactivity_level' in request.data:
+            min_level = int(request.data['min_proactivity_level'])
+            if 1 <= min_level <= 10:
+                conversation.min_proactivity_level = min_level
+        
+        if 'max_proactivity_level' in request.data:
+            max_level = int(request.data['max_proactivity_level'])
+            if 1 <= max_level <= 10:
+                conversation.max_proactivity_level = max_level
+        
+        # Update quiet hours
+        if 'quiet_hours_start' in request.data:
+            from datetime import datetime
+            time_str = request.data['quiet_hours_start']
+            if time_str:
+                conversation.quiet_hours_start = datetime.strptime(time_str, '%H:%M').time()
+            else:
+                conversation.quiet_hours_start = None
+        
+        if 'quiet_hours_end' in request.data:
+            from datetime import datetime
+            time_str = request.data['quiet_hours_end']
+            if time_str:
+                conversation.quiet_hours_end = datetime.strptime(time_str, '%H:%M').time()
+            else:
+                conversation.quiet_hours_end = None
+        
+        conversation.save()
+        
+        return Response({
+            'message': 'Proactivity settings updated successfully',
+            'settings': {
+                'proactive_messages_enabled': conversation.proactive_messages_enabled,
+                'auto_adjust_proactivity': conversation.auto_adjust_proactivity,
+                'proactivity_level': conversation.proactivity_level,
+                'min_proactivity_level': conversation.min_proactivity_level,
+                'max_proactivity_level': conversation.max_proactivity_level,
+                'quiet_hours_start': conversation.quiet_hours_start.isoformat() if conversation.quiet_hours_start else None,
+                'quiet_hours_end': conversation.quiet_hours_end.isoformat() if conversation.quiet_hours_end else None,
+            }
+        })
 
 
 class MessageViewSet(viewsets.ReadOnlyModelViewSet):

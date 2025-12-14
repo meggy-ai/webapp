@@ -199,6 +199,21 @@ export const conversationsAPI = {
     return response.data;
   },
 
+  getProactivitySettings: async (id: string) => {
+    const response = await api.get(
+      `/conversations/${id}/proactivity_settings/`
+    );
+    return response.data;
+  },
+
+  updateProactivitySettings: async (id: string, settings: any) => {
+    const response = await api.patch(
+      `/conversations/${id}/update_proactivity_settings/`,
+      settings
+    );
+    return response.data;
+  },
+
   delete: async (id: string) => {
     const response = await api.delete(`/conversations/${id}/`);
     return response.data;

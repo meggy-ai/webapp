@@ -20,3 +20,50 @@
   --animate-blob: blob 20s infinite;
   --animation-delay-2000: 2s;
 }
+
+/* Custom range slider styles */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #4338ca;
+}
+
+input[type="range"]:disabled::-webkit-slider-thumb {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  background: #4338ca;
+}
+
+input[type="range"]:disabled::-moz-range-thumb {
+  background: #9ca3af;
+  cursor: not-allowed;
+}

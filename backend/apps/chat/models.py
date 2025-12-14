@@ -129,6 +129,34 @@ class Conversation(models.Model):
         help_text='Proactivity level 1-10 (1=passive, 10=very proactive). Auto-adjusts based on user engagement.'
     )
     
+    # User preferences for proactivity
+    proactive_messages_enabled = models.BooleanField(
+        default=True,
+        help_text='User preference: Enable/disable proactive messages entirely'
+    )
+    auto_adjust_proactivity = models.BooleanField(
+        default=True,
+        help_text='User preference: Allow system to auto-adjust proactivity level based on engagement'
+    )
+    min_proactivity_level = models.IntegerField(
+        default=1,
+        help_text='User preference: Minimum proactivity level (prevents auto-adjustment below this)'
+    )
+    max_proactivity_level = models.IntegerField(
+        default=10,
+        help_text='User preference: Maximum proactivity level (prevents auto-adjustment above this)'
+    )
+    quiet_hours_start = models.TimeField(
+        null=True,
+        blank=True,
+        help_text='User preference: Start of quiet hours (no proactive messages)'
+    )
+    quiet_hours_end = models.TimeField(
+        null=True,
+        blank=True,
+        help_text='User preference: End of quiet hours'
+    )
+    
     # Engagement tracking
     last_user_message_at = models.DateTimeField(null=True, blank=True, help_text='When user last sent a message')
     last_proactive_message_at = models.DateTimeField(null=True, blank=True, help_text='When Meggy last initiated contact')
@@ -218,7 +246,12 @@ class Conversation(models.Model):
         """
         Auto-adjust proactivity level based on user engagement.
         Increases if user responds well, decreases if ignored.
+        Respects user-configured min/max bounds.
         """
+        # Only auto-adjust if user has enabled it
+        if not self.auto_adjust_proactivity:
+            return
+        
         if self.total_proactive_messages == 0:
             return  # No data to adjust yet
         
@@ -227,9 +260,9 @@ class Conversation(models.Model):
         
         # Adjust based on response rate
         if response_rate > 0.7:  # High engagement - increase proactivity
-            new_level = min(10, self.proactivity_level + 1)
+            new_level = min(self.max_proactivity_level, self.proactivity_level + 1)
         elif response_rate < 0.3:  # Low engagement - decrease proactivity
-            new_level = max(1, self.proactivity_level - 1)
+            new_level = max(self.min_proactivity_level, self.proactivity_level - 1)
         else:
             new_level = self.proactivity_level  # Keep current level
         
@@ -243,7 +276,23 @@ class Conversation(models.Model):
         Returns (should_send: bool, reason: str) tuple.
         """
         from django.utils import timezone
-        from datetime import timedelta
+        from datetime import timedelta, time as dt_time
+        
+        # Check user preferences
+        if not self.proactive_messages_enabled:
+            return False, "Proactive messages disabled by user"
+        
+        # Check quiet hours
+        if self.quiet_hours_start and self.quiet_hours_end:
+            current_time = timezone.now().time()
+            if self.quiet_hours_start < self.quiet_hours_end:
+                # Normal range (e.g., 22:00 - 08:00 next day)
+                if self.quiet_hours_start <= current_time <= self.quiet_hours_end:
+                    return False, "Currently in quiet hours"
+            else:
+                # Overnight range (e.g., 22:00 - 08:00 crosses midnight)
+                if current_time >= self.quiet_hours_start or current_time <= self.quiet_hours_end:
+                    return False, "Currently in quiet hours"
         
         if not self.is_active:
             return False, "Conversation is not active"
