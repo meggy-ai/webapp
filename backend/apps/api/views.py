@@ -2,16 +2,19 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
+from django.utils import timezone
+from datetime import timedelta
 from asgiref.sync import async_to_sync
 from apps.accounts.models import User
 from apps.agents.models import Agent
-from apps.chat.models import Conversation, Message
+from apps.chat.models import Conversation, Message, Timer
 from core.services import chat_service
 from .serializers import (
     UserSerializer, UserCreateSerializer,
     AgentSerializer,
     ConversationSerializer, ConversationListSerializer,
-    MessageSerializer
+    MessageSerializer,
+    TimerSerializer
 )
 
 
@@ -388,4 +391,82 @@ class MessageViewSet(viewsets.ReadOnlyModelViewSet):
         messages.reverse()
         
         serializer = self.get_serializer(messages, many=True)
+        return Response(serializer.data)
+
+
+class TimerViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing user timers.
+    Provides CRUD operations and custom actions for pause/resume/cancel.
+    """
+    serializer_class = TimerSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """Return only the authenticated user's timers."""
+        return Timer.objects.filter(user=self.request.user).order_by('-created_at')
+    
+    def perform_create(self, serializer):
+        """Create a new timer for the authenticated user."""
+        # Calculate end time based on duration
+        duration_seconds = serializer.validated_data['duration_seconds']
+        end_time = timezone.now() + timedelta(seconds=duration_seconds)
+        
+        serializer.save(
+            user=self.request.user,
+            conversation=Conversation.objects.filter(user=self.request.user).first(),
+            end_time=end_time,
+            status='active'
+        )
+    
+    @action(detail=True, methods=['post'])
+    def pause(self, request, pk=None):
+        """Pause an active timer."""
+        timer = self.get_object()
+        
+        if timer.status != 'active':
+            return Response(
+                {'error': 'Only active timers can be paused'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        timer.pause()
+        serializer = self.get_serializer(timer)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def resume(self, request, pk=None):
+        """Resume a paused timer."""
+        timer = self.get_object()
+        
+        if timer.status != 'paused':
+            return Response(
+                {'error': 'Only paused timers can be resumed'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        timer.resume()
+        serializer = self.get_serializer(timer)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """Cancel a timer."""
+        timer = self.get_object()
+        
+        if timer.status in ['completed', 'cancelled']:
+            return Response(
+                {'error': 'Timer is already completed or cancelled'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        timer.cancel()
+        serializer = self.get_serializer(timer)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def active(self, request):
+        """Get all active and paused timers for the user."""
+        timers = self.get_queryset().filter(status__in=['active', 'paused'])
+        serializer = self.get_serializer(timers, many=True)
         return Response(serializer.data)

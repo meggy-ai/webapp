@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from apps.accounts.models import User
 from apps.agents.models import Agent
-from apps.chat.models import Conversation, Message
+from apps.chat.models import Conversation, Message, Timer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -86,3 +86,28 @@ class ConversationListSerializer(serializers.ModelSerializer):
                 'created_at': last_msg.created_at
             }
         return None
+
+
+class TimerSerializer(serializers.ModelSerializer):
+    """Serializer for Timer model."""
+    time_remaining = serializers.SerializerMethodField()
+    time_remaining_display = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Timer
+        fields = [
+            'id', 'name', 'duration_seconds', 'end_time', 'status',
+            'time_remaining', 'time_remaining_display',
+            'three_minute_warning_sent', 'completion_notification_sent',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'id', 'three_minute_warning_sent', 'completion_notification_sent',
+            'created_at', 'updated_at'
+        ]
+    
+    def get_time_remaining(self, obj):
+        return obj.get_time_remaining()
+    
+    def get_time_remaining_display(self, obj):
+        return obj.get_time_remaining_display()

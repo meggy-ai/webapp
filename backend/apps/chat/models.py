@@ -56,6 +56,140 @@ class NoteEntry(models.Model):
         return f"{self.note.name}: {self.content[:50]}"
 
 
+class Timer(models.Model):
+    """A timer set by user with Meggy's help."""
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('paused', 'Paused'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='timers'
+    )
+    conversation = models.ForeignKey(
+        'Conversation',
+        on_delete=models.CASCADE,
+        related_name='timers',
+        null=True,
+        blank=True
+    )
+    
+    # Timer details
+    name = models.CharField(max_length=200, help_text='Description of what the timer is for')
+    duration_seconds = models.IntegerField(help_text='Total duration in seconds')
+    end_time = models.DateTimeField(help_text='When the timer will end')
+    
+    # State management
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    paused_at = models.DateTimeField(null=True, blank=True)
+    remaining_seconds = models.IntegerField(null=True, blank=True, help_text='Seconds remaining when paused')
+    
+    # Notifications
+    three_minute_warning_sent = models.BooleanField(default=False)
+    completion_notification_sent = models.BooleanField(default=False)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'timers'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['end_time', 'status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} ({self.get_time_remaining_display()})"
+    
+    def get_time_remaining(self):
+        """Get seconds remaining on timer."""
+        from django.utils import timezone
+        
+        if self.status == 'completed' or self.status == 'cancelled':
+            return 0
+        
+        if self.status == 'paused':
+            return self.remaining_seconds if self.remaining_seconds else 0
+        
+        # Active timer
+        now = timezone.now()
+        if now >= self.end_time:
+            return 0
+        
+        return int((self.end_time - now).total_seconds())
+    
+    def get_time_remaining_display(self):
+        """Get human-readable time remaining."""
+        seconds = self.get_time_remaining()
+        
+        if seconds <= 0:
+            return "Done"
+        
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        secs = seconds % 60
+        
+        if hours > 0:
+            return f"{hours}h {minutes}m {secs}s"
+        elif minutes > 0:
+            return f"{minutes}m {secs}s"
+        else:
+            return f"{secs}s"
+    
+    def pause(self):
+        """Pause the timer."""
+        from django.utils import timezone
+        
+        if self.status != 'active':
+            return False
+        
+        self.remaining_seconds = self.get_time_remaining()
+        self.paused_at = timezone.now()
+        self.status = 'paused'
+        self.save()
+        return True
+    
+    def resume(self):
+        """Resume a paused timer."""
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        if self.status != 'paused':
+            return False
+        
+        # Set new end time based on remaining seconds
+        self.end_time = timezone.now() + timedelta(seconds=self.remaining_seconds)
+        self.status = 'active'
+        self.paused_at = None
+        self.save()
+        return True
+    
+    def cancel(self):
+        """Cancel the timer."""
+        if self.status in ['completed', 'cancelled']:
+            return False
+        
+        self.status = 'cancelled'
+        self.save()
+        return True
+    
+    def complete(self):
+        """Mark timer as completed."""
+        if self.status != 'active':
+            return False
+        
+        self.status = 'completed'
+        self.save()
+        return True
+
+
 class UserMemory(models.Model):
     """
     Long-term memory storage for user information.

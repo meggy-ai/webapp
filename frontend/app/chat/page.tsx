@@ -15,6 +15,7 @@ import {
   StickyNote,
 } from "lucide-react";
 import { conversationsAPI, messagesAPI } from "@/lib/api";
+import TimerDisplay from "@/components/chat/TimerDisplay";
 
 interface Message {
   id: string;
@@ -35,6 +36,7 @@ export default function ChatPage() {
   const [wsConnected, setWsConnected] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [showTimers, setShowTimers] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -94,6 +96,34 @@ export default function ChatPage() {
             setIsResponseToProactive(true);
           } else if (data.type === "proactivity_update") {
             console.log("Proactivity level updated:", data.proactivity_level);
+          } else if (data.type === "timer_warning") {
+            // Play warning sound
+            playNotificationSound("warning");
+            
+            // Add system message
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `timer-warning-${data.timer_id}`,
+                content: data.message,
+                role: "system",
+                timestamp: new Date().toISOString(),
+              },
+            ]);
+          } else if (data.type === "timer_completed") {
+            // Play completion sound
+            playNotificationSound("completion");
+            
+            // Add system message
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `timer-complete-${data.timer_id}`,
+                content: data.message,
+                role: "system",
+                timestamp: new Date().toISOString(),
+              },
+            ]);
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
@@ -122,6 +152,68 @@ export default function ChatPage() {
       }
     };
   }, [conversationId]);
+
+  const playNotificationSound = (type: "warning" | "completion") => {
+    try {
+      // Create audio context for playing notification sounds
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      if (type === "warning") {
+        // Warning: 2 beeps at 800Hz
+        oscillator.frequency.value = 800;
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+
+        // Second beep
+        setTimeout(() => {
+          const osc2 = audioContext.createOscillator();
+          const gain2 = audioContext.createGain();
+          osc2.connect(gain2);
+          gain2.connect(audioContext.destination);
+          osc2.frequency.value = 800;
+          gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+          osc2.start();
+          osc2.stop(audioContext.currentTime + 0.1);
+        }, 200);
+      } else {
+        // Completion: 3 ascending beeps
+        oscillator.frequency.value = 600;
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.15);
+
+        setTimeout(() => {
+          const osc2 = audioContext.createOscillator();
+          const gain2 = audioContext.createGain();
+          osc2.connect(gain2);
+          gain2.connect(audioContext.destination);
+          osc2.frequency.value = 800;
+          gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+          osc2.start();
+          osc2.stop(audioContext.currentTime + 0.15);
+        }, 200);
+
+        setTimeout(() => {
+          const osc3 = audioContext.createOscillator();
+          const gain3 = audioContext.createGain();
+          osc3.connect(gain3);
+          gain3.connect(audioContext.destination);
+          osc3.frequency.value = 1000;
+          gain3.gain.setValueAtTime(0.3, audioContext.currentTime);
+          osc3.start();
+          osc3.stop(audioContext.currentTime + 0.2);
+        }, 400);
+      }
+    } catch (error) {
+      console.error("Error playing notification sound:", error);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -322,9 +414,14 @@ export default function ChatPage() {
             <div className="flex items-center gap-2 mr-4">
               <button
                 title="Timers"
-                className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                onClick={() => setShowTimers(!showTimers)}
+                className={`p-2 rounded-lg transition-colors ${
+                  showTimers
+                    ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400"
+                    : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                }`}
               >
-                <Clock className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
+                <Clock className="h-5 w-5" />
               </button>
               <button
                 title="Reminders"
@@ -363,8 +460,10 @@ export default function ChatPage() {
         </div>
       </header>
 
-      {/* Main Chat Area - Full width, no sidebar */}
-      <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+      {/* Main Chat Area with optional timer panel */}
+      <main className="flex-1 flex overflow-hidden">
+        {/* Chat Section */}
+        <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
         {/* Messages Timeline */}
         <div
           ref={messagesContainerRef}
@@ -545,6 +644,16 @@ export default function ChatPage() {
             Meggy is always learning and improving. Your privacy is protected.
           </p>
         </div>
+        </div>
+
+        {/* Timer Panel - Right Side */}
+        {showTimers && (
+          <div className="w-80 border-l border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 overflow-y-auto">
+            <div className="p-4">
+              <TimerDisplay onTimerUpdate={() => {/* Timer updated */}} />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

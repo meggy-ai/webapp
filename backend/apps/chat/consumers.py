@@ -113,6 +113,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'reason': event.get('reason', '')
         }))
     
+    async def timer_warning(self, event):
+        """
+        Handle 3-minute timer warning event.
+        """
+        await self.send(text_data=json.dumps({
+            'type': 'timer_warning',
+            'timer_id': event['timer_id'],
+            'timer_name': event['timer_name'],
+            'time_remaining': event['time_remaining'],
+            'message': event['message']
+        }))
+    
+    async def timer_completed(self, event):
+        """
+        Handle timer completion event.
+        """
+        await self.send(text_data=json.dumps({
+            'type': 'timer_completed',
+            'timer_id': event['timer_id'],
+            'timer_name': event['timer_name'],
+            'message': event['message']
+        }))
+    
     @database_sync_to_async
     def get_or_create_conversation(self):
         """Get or create conversation for the user."""

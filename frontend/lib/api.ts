@@ -240,4 +240,47 @@ export const messagesAPI = {
   },
 };
 
+// Timers API
+export const timersAPI = {
+  getAll: async () => {
+    const response = await api.get("/timers/");
+    return response.data;
+  },
+
+  getActive: async () => {
+    const response = await api.get("/timers/active/");
+    return response.data;
+  },
+
+  getById: async (id: string) => {
+    const response = await api.get(`/timers/${id}/`);
+    return response.data;
+  },
+
+  create: async (data: { name: string; duration_seconds: number }) => {
+    const response = await api.post("/timers/", data);
+    return response.data;
+  },
+
+  pause: async (id: string) => {
+    const response = await api.post(`/timers/${id}/pause/`);
+    return response.data;
+  },
+
+  resume: async (id: string) => {
+    const response = await api.post(`/timers/${id}/resume/`);
+    return response.data;
+  },
+
+  cancel: async (id: string) => {
+    const response = await api.post(`/timers/${id}/cancel/`);
+    return response.data;
+  },
+
+  delete: async (id: string) => {
+    const response = await api.delete(`/timers/${id}/`);
+    return response.data;
+  },
+};
+
 export default api;
