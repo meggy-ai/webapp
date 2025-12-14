@@ -31,6 +31,8 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [lastProactiveCheck, setLastProactiveCheck] = useState<number>(0);
+  const [isResponseToProactive, setIsResponseToProactive] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,6 +42,53 @@ export default function ChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Poll for proactive messages every 5 minutes
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const checkProactive = async () => {
+      try {
+        const response = await conversationsAPI.checkProactive(conversationId);
+
+        if (response.should_send && response.message) {
+          // Add proactive message to the chat
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: response.message.id,
+              content: response.message.content,
+              role: "assistant",
+              timestamp: response.message.created_at,
+            },
+          ]);
+
+          // Mark next user message as response to proactive
+          setIsResponseToProactive(true);
+        }
+      } catch (error) {
+        console.error("Failed to check proactive message:", error);
+      }
+    };
+
+    // Check immediately if it's been >5 minutes since last check
+    const now = Date.now();
+    if (now - lastProactiveCheck > 5 * 60 * 1000) {
+      checkProactive();
+      setLastProactiveCheck(now);
+    }
+
+    // Set up interval for checking every 5 minutes
+    const interval = setInterval(
+      () => {
+        checkProactive();
+        setLastProactiveCheck(Date.now());
+      },
+      5 * 60 * 1000
+    ); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [conversationId, lastProactiveCheck]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -103,8 +152,14 @@ export default function ChatPage() {
     try {
       const response = await conversationsAPI.sendMessage(
         conversationId,
-        userMessage
+        userMessage,
+        isResponseToProactive
       );
+
+      // Reset proactive flag
+      if (isResponseToProactive) {
+        setIsResponseToProactive(false);
+      }
 
       // Replace temp message with actual messages from backend
       setMessages((prev) => [

@@ -100,12 +100,20 @@ class ConversationViewSet(viewsets.ModelViewSet):
         """Send a message in a conversation."""
         conversation = self.get_object()
         content = request.data.get('content')
+        is_response_to_proactive = request.data.get('is_response_to_proactive', False)
         
         if not content:
             return Response(
                 {'error': 'Content is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        # Record user message for engagement tracking
+        conversation.record_user_message()
+        
+        # If this is a response to a proactive message, record it
+        if is_response_to_proactive:
+            conversation.record_proactive_response()
         
         # Create user message
         user_message = Message.objects.create(
@@ -173,6 +181,81 @@ class ConversationViewSet(viewsets.ModelViewSet):
                 'success': False,
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=True, methods=['get'])
+    def check_proactive(self, request, pk=None):
+        """
+        Check if a proactive message should be sent.
+        Returns message if it should be sent, or null if not.
+        """
+        conversation = self.get_object()
+        
+        # Check if we should send a proactive message
+        should_send, reason = conversation.should_send_proactive_message()
+        
+        if not should_send:
+            return Response({
+                'should_send': False,
+                'reason': reason,
+                'proactivity_level': conversation.proactivity_level
+            })
+        
+        try:
+            # Generate proactive message
+            from core.bruno_integration.proactive_messages import proactive_message_generator
+            message_data = async_to_sync(proactive_message_generator.generate_proactive_message)(
+                user_id=str(request.user.id),
+                conversation_id=str(conversation.id),
+                proactivity_level=conversation.proactivity_level
+            )
+            
+            # Record that we sent a proactive message
+            conversation.record_proactive_message()
+            
+            # Create the proactive message in the database
+            proactive_message = Message.objects.create(
+                conversation=conversation,
+                role='assistant',
+                content=message_data['content'],
+                model=conversation.agent.model
+            )
+            
+            return Response({
+                'should_send': True,
+                'message': MessageSerializer(proactive_message).data,
+                'proactivity_level': conversation.proactivity_level,
+                'metadata': message_data
+            })
+            
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Error generating proactive message: {e}")
+            return Response({
+                'should_send': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=True, methods=['post'])
+    def adjust_proactivity(self, request, pk=None):
+        """
+        Manually trigger proactivity adjustment.
+        Normally this happens automatically, but can be triggered manually for testing.
+        """
+        conversation = self.get_object()
+        old_level = conversation.proactivity_level
+        
+        conversation.adjust_proactivity()
+        
+        return Response({
+            'old_level': old_level,
+            'new_level': conversation.proactivity_level,
+            'total_proactive': conversation.total_proactive_messages,
+            'responses_received': conversation.proactive_responses_received,
+            'response_rate': (
+                conversation.proactive_responses_received / conversation.total_proactive_messages
+                if conversation.total_proactive_messages > 0 else 0
+            )
+        })
 
 
 class MessageViewSet(viewsets.ReadOnlyModelViewSet):

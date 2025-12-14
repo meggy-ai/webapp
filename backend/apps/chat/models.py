@@ -124,6 +124,17 @@ class Conversation(models.Model):
     
     # Proactive agent settings
     is_active = models.BooleanField(default=True, help_text='Whether Meggy is actively monitoring and can proactively engage')
+    proactivity_level = models.IntegerField(
+        default=5,
+        help_text='Proactivity level 1-10 (1=passive, 10=very proactive). Auto-adjusts based on user engagement.'
+    )
+    
+    # Engagement tracking
+    last_user_message_at = models.DateTimeField(null=True, blank=True, help_text='When user last sent a message')
+    last_proactive_message_at = models.DateTimeField(null=True, blank=True, help_text='When Meggy last initiated contact')
+    total_user_messages = models.IntegerField(default=0)
+    total_proactive_messages = models.IntegerField(default=0)
+    proactive_responses_received = models.IntegerField(default=0, help_text='How many times user responded to proactive messages')
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -178,10 +189,92 @@ class Conversation(models.Model):
             defaults={
                 'agent': agent,
                 'title': 'Chat with Meggy',
-                'is_active': True
+                'is_active': True,
+                'proactivity_level': 5
             }
         )
         return conversation, created
+    
+    def record_user_message(self):
+        """Record that user sent a message."""
+        from django.utils import timezone
+        self.last_user_message_at = timezone.now()
+        self.total_user_messages += 1
+        self.save(update_fields=['last_user_message_at', 'total_user_messages'])
+    
+    def record_proactive_message(self):
+        """Record that Meggy initiated a proactive message."""
+        from django.utils import timezone
+        self.last_proactive_message_at = timezone.now()
+        self.total_proactive_messages += 1
+        self.save(update_fields=['last_proactive_message_at', 'total_proactive_messages'])
+    
+    def record_proactive_response(self):
+        """Record that user responded to a proactive message."""
+        self.proactive_responses_received += 1
+        self.save(update_fields=['proactive_responses_received'])
+    
+    def adjust_proactivity(self):
+        """
+        Auto-adjust proactivity level based on user engagement.
+        Increases if user responds well, decreases if ignored.
+        """
+        if self.total_proactive_messages == 0:
+            return  # No data to adjust yet
+        
+        # Calculate response rate to proactive messages
+        response_rate = self.proactive_responses_received / self.total_proactive_messages
+        
+        # Adjust based on response rate
+        if response_rate > 0.7:  # High engagement - increase proactivity
+            new_level = min(10, self.proactivity_level + 1)
+        elif response_rate < 0.3:  # Low engagement - decrease proactivity
+            new_level = max(1, self.proactivity_level - 1)
+        else:
+            new_level = self.proactivity_level  # Keep current level
+        
+        if new_level != self.proactivity_level:
+            self.proactivity_level = new_level
+            self.save(update_fields=['proactivity_level'])
+    
+    def should_send_proactive_message(self):
+        """
+        Determine if Meggy should send a proactive message.
+        Returns (should_send: bool, reason: str) tuple.
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        if not self.is_active:
+            return False, "Conversation is not active"
+        
+        if self.proactivity_level < 1:
+            return False, "Proactivity level is too low"
+        
+        now = timezone.now()
+        
+        # Calculate cooldown period based on proactivity level
+        # Level 10 = 30 min, Level 5 = 2 hours, Level 1 = 8 hours
+        hours_cooldown = 8 - (self.proactivity_level - 1) * 0.75
+        cooldown = timedelta(hours=hours_cooldown)
+        
+        # Check if enough time has passed since last proactive message
+        if self.last_proactive_message_at:
+            time_since_last = now - self.last_proactive_message_at
+            if time_since_last < cooldown:
+                remaining = cooldown - time_since_last
+                return False, f"Cooldown period not met. Wait {remaining.total_seconds() / 60:.0f} more minutes"
+        
+        # Check if user has been away for a while
+        if self.last_user_message_at:
+            time_since_user = now - self.last_user_message_at
+            # Only send if user hasn't messaged recently (at least 30 min)
+            if time_since_user < timedelta(minutes=30):
+                return False, f"User messaged recently ({time_since_user.total_seconds() / 60:.0f} min ago)"
+            return True, f"User has been away for {time_since_user.total_seconds() / 60:.0f} minutes"
+        
+        # First time - send a proactive message
+        return True, "First proactive message"
 
 
 class Message(models.Model):

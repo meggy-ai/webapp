@@ -166,10 +166,25 @@ export const conversationsAPI = {
     return response.data;
   },
 
-  sendMessage: async (id: string, content: string) => {
+  sendMessage: async (
+    id: string,
+    content: string,
+    isResponseToProactive: boolean = false
+  ) => {
     const response = await api.post(`/conversations/${id}/send_message/`, {
       content,
+      is_response_to_proactive: isResponseToProactive,
     });
+    return response.data;
+  },
+
+  checkProactive: async (id: string) => {
+    const response = await api.get(`/conversations/${id}/check_proactive/`);
+    return response.data;
+  },
+
+  adjustProactivity: async (id: string) => {
+    const response = await api.post(`/conversations/${id}/adjust_proactivity/`);
     return response.data;
   },
 
