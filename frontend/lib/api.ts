@@ -44,18 +44,29 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("refresh_token");
         if (refreshToken) {
+          console.log("Attempting to refresh token...");
           const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
             refresh_token: refreshToken,
           });
 
           const { access_token } = response.data;
           localStorage.setItem("access_token", access_token);
+          console.log("Token refreshed successfully");
 
           // Retry the original request with new token
           originalRequest.headers.Authorization = `Bearer ${access_token}`;
           return api(originalRequest);
+        } else {
+          console.warn("No refresh token found, redirecting to login");
+          // No refresh token, redirect to login
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("user");
+          window.location.href = "/auth/login";
+          return Promise.reject(new Error("No refresh token available"));
         }
       } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
         // Refresh failed, clear tokens and redirect to login
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
@@ -196,8 +207,15 @@ export const conversationsAPI = {
 
 // Messages API
 export const messagesAPI = {
-  getByConversation: async (conversationId: string) => {
-    const response = await api.get(`/messages/?conversation=${conversationId}`);
+  getByConversation: async (
+    conversationId: string,
+    options?: { limit?: number; before?: string }
+  ) => {
+    const params = new URLSearchParams({ conversation: conversationId });
+    if (options?.limit) params.append("limit", options.limit.toString());
+    if (options?.before) params.append("before", options.before);
+
+    const response = await api.get(`/messages/?${params.toString()}`);
     return response.data;
   },
 

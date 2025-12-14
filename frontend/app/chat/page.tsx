@@ -31,64 +31,97 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
-  const [lastProactiveCheck, setLastProactiveCheck] = useState<number>(0);
   const [isResponseToProactive, setIsResponseToProactive] = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     initializeChat();
+
+    return () => {
+      // Cleanup WebSocket on unmount
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
   }, []);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Poll for proactive messages every 5 minutes
+  // WebSocket connection for real-time proactive messages
   useEffect(() => {
     if (!conversationId) return;
 
-    const checkProactive = async () => {
-      try {
-        const response = await conversationsAPI.checkProactive(conversationId);
+    const connectWebSocket = () => {
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
 
-        if (response.should_send && response.message) {
-          // Add proactive message to the chat
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: response.message.id,
-              content: response.message.content,
-              role: "assistant",
-              timestamp: response.message.created_at,
-            },
-          ]);
+      const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${wsProtocol}//localhost:8000/ws/chat/?token=${token}`;
 
-          // Mark next user message as response to proactive
-          setIsResponseToProactive(true);
+      const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log("WebSocket connected");
+        setWsConnected(true);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.type === "connection_established") {
+            console.log("WebSocket connection established", data);
+          } else if (data.type === "proactive_message") {
+            // Add proactive message to chat
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: data.message.id,
+                content: data.message.content,
+                role: "assistant",
+                timestamp: data.message.created_at,
+              },
+            ]);
+
+            // Mark next user message as response to proactive
+            setIsResponseToProactive(true);
+          } else if (data.type === "proactivity_update") {
+            console.log("Proactivity level updated:", data.proactivity_level);
+          }
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error);
         }
-      } catch (error) {
-        console.error("Failed to check proactive message:", error);
-      }
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        setWsConnected(false);
+      };
+
+      ws.onclose = () => {
+        console.log("WebSocket closed, reconnecting in 5s...");
+        setWsConnected(false);
+        setTimeout(connectWebSocket, 5000);
+      };
+
+      wsRef.current = ws;
     };
 
-    // Check immediately if it's been >5 minutes since last check
-    const now = Date.now();
-    if (now - lastProactiveCheck > 5 * 60 * 1000) {
-      checkProactive();
-      setLastProactiveCheck(now);
-    }
+    connectWebSocket();
 
-    // Set up interval for checking every 5 minutes
-    const interval = setInterval(
-      () => {
-        checkProactive();
-        setLastProactiveCheck(Date.now());
-      },
-      5 * 60 * 1000
-    ); // 5 minutes
-
-    return () => clearInterval(interval);
-  }, [conversationId, lastProactiveCheck]);
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, [conversationId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -123,12 +156,72 @@ export default function ChatPage() {
 
   const loadMessages = async (convId: string) => {
     try {
-      const data = await messagesAPI.getByConversation(convId);
+      // Load only last 6 messages initially
+      console.log("Loading messages for conversation:", convId);
+      const data = await messagesAPI.getByConversation(convId, { limit: 6 });
+      console.log("Received messages:", data);
       const messagesArray = Array.isArray(data) ? data : [];
+      console.log("Messages array length:", messagesArray.length);
       setMessages(messagesArray);
+      setHasMoreMessages(messagesArray.length === 6);
     } catch (error) {
       console.error("Failed to load messages:", error);
       setMessages([]);
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    if (
+      !conversationId ||
+      isLoadingMore ||
+      !hasMoreMessages ||
+      messages.length === 0
+    )
+      return;
+
+    setIsLoadingMore(true);
+    const container = messagesContainerRef.current;
+    const previousScrollHeight = container?.scrollHeight || 0;
+
+    try {
+      // Get the oldest message ID (first in array since they're in chronological order)
+      const oldestMessageId = messages[0].id;
+
+      // Load messages before the oldest one
+      const data = await messagesAPI.getByConversation(conversationId, {
+        limit: 10,
+        before: oldestMessageId,
+      });
+      const messagesArray = Array.isArray(data) ? data : [];
+
+      if (messagesArray.length > 0) {
+        setMessages((prev) => [...messagesArray, ...prev]);
+
+        // Maintain scroll position after adding messages
+        setTimeout(() => {
+          if (container) {
+            const newScrollHeight = container.scrollHeight;
+            container.scrollTop = newScrollHeight - previousScrollHeight;
+          }
+        }, 0);
+      }
+
+      // If we got less than requested, no more messages available
+      setHasMoreMessages(messagesArray.length === 10);
+    } catch (error) {
+      console.error("Failed to load more messages:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Handle scroll event to load more messages
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+
+    // Check if scrolled to top (with small threshold)
+    if (container.scrollTop < 100 && hasMoreMessages && !isLoadingMore) {
+      loadMoreMessages();
     }
   };
 
@@ -273,7 +366,41 @@ export default function ChatPage() {
       {/* Main Chat Area - Full width, no sidebar */}
       <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
         {/* Messages Timeline */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-zinc-950">
+        <div
+          ref={messagesContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-zinc-950"
+        >
+          {/* Loading more indicator */}
+          {isLoadingMore && (
+            <div className="text-center py-2">
+              <Loader2 className="h-5 w-5 animate-spin text-indigo-600 mx-auto" />
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                Loading more messages...
+              </p>
+            </div>
+          )}
+
+          {/* Load more prompt or end indicator */}
+          {messages.length > 0 && (
+            <div className="text-center py-2">
+              {!isLoadingMore && hasMoreMessages ? (
+                <button
+                  onClick={loadMoreMessages}
+                  className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                >
+                  ↑ Scroll up to load older messages
+                </button>
+              ) : !isLoadingMore && !hasMoreMessages ? (
+                <div className="flex items-center justify-center gap-2 text-zinc-400 dark:text-zinc-600">
+                  <div className="h-px w-12 bg-zinc-200 dark:bg-zinc-800"></div>
+                  <span className="text-xs">Beginning of conversation</span>
+                  <div className="h-px w-12 bg-zinc-200 dark:bg-zinc-800"></div>
+                </div>
+              ) : null}
+            </div>
+          )}
+
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center max-w-md">

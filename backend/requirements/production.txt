@@ -7,6 +7,11 @@ python-decouple==3.8
 PyJWT==2.8.0
 cryptography==42.0.0
 
+# WebSocket Support
+channels==4.0.0
+channels-redis==4.1.0
+daphne==4.0.0
+
 # Bruno Packages (will be available later)
 # bruno-core==0.1.0
 # bruno-llm==0.1.0

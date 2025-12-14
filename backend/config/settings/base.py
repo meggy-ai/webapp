@@ -19,6 +19,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lamb
 
 # Application definition
 INSTALLED_APPS = [
+    'daphne',  # Must be first for WebSocket support
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -30,6 +31,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_extensions',
+    'channels',
     
     # Local apps
     'apps.accounts',
@@ -164,6 +166,16 @@ DEFAULT_MODEL = config('DEFAULT_MODEL', default='gpt-4')
 
 # Bruno Integration Settings
 BRUNO_LOG_LEVEL = config('BRUNO_LOG_LEVEL', default='INFO')
+
+# Channels Configuration
+ASGI_APPLICATION = 'config.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        # Use in-memory channel layer for development (no Redis needed)
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 # Logging
 LOGGING = {

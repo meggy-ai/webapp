@@ -264,4 +264,44 @@ class MessageViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Message.objects.filter(conversation__user=self.request.user)
+        queryset = Message.objects.filter(conversation__user=self.request.user)
+        
+        # Support pagination parameters
+        conversation_id = self.request.query_params.get('conversation')
+        before_id = self.request.query_params.get('before')  # Load messages before this message ID
+        
+        if conversation_id:
+            queryset = queryset.filter(conversation_id=conversation_id)
+        
+        if before_id:
+            # Get messages created before the specified message
+            try:
+                before_message = Message.objects.get(id=before_id)
+                queryset = queryset.filter(created_at__lt=before_message.created_at)
+            except Message.DoesNotExist:
+                pass
+        
+        # Order by created_at descending (newest first), then we'll reverse in list action
+        queryset = queryset.order_by('-created_at')
+        
+        return queryset
+    
+    def list(self, request, *args, **kwargs):
+        """Override list to handle limit parameter and reverse order."""
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Handle limit parameter
+        limit = self.request.query_params.get('limit')
+        if limit:
+            try:
+                limit = int(limit)
+                queryset = queryset[:limit]
+            except ValueError:
+                pass
+        
+        # Get the messages and reverse them for chronological order
+        messages = list(queryset)
+        messages.reverse()
+        
+        serializer = self.get_serializer(messages, many=True)
+        return Response(serializer.data)
