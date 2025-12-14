@@ -70,22 +70,33 @@ class NotesAbility:
         command_lower = command.lower().strip()
         state = notes_state.get_state(conversation_id)
         
+        logger.info(f"📝 Notes command handler: '{command_lower}', in_notes_mode={state['in_notes_mode']}, view={state['view']}")
+        
         # Check if user wants to enter notes mode
-        if any(phrase in command_lower for phrase in ['show notes', 'open notes', 'view notes', 'notes']):
+        # Match "show notes", "view notes", "open notes", or just "notes"
+        if any(phrase in command_lower for phrase in ['show notes', 'open notes', 'view notes']) or command_lower == 'notes':
             if not state['in_notes_mode']:
+                logger.info(f"📝 Entering notes mode")
                 notes_state.set_state(conversation_id, in_notes_mode=True, view='list')
+                return await self._show_notes_list(user_id)
+            else:
+                # Already in notes mode, just show the list again
+                logger.info(f"📝 Already in notes mode, showing list")
                 return await self._show_notes_list(user_id)
         
         # If not in notes mode, return None (not a notes command)
         if not state['in_notes_mode']:
+            logger.info(f"📝 Not in notes mode, ignoring command")
             return None
         
         # Handle commands based on current view
+        logger.info(f"📝 Routing to view handler: {state['view']}")
         if state['view'] == 'list':
             return await self._handle_list_view_command(user_id, conversation_id, command_lower)
         elif state['view'] == 'detail':
             return await self._handle_detail_view_command(user_id, conversation_id, command_lower)
         
+        logger.warning(f"📝 No handler found for view: {state['view']}")
         return None
     
     async def _show_notes_list(self, user_id: str) -> str:
@@ -258,8 +269,8 @@ You don't have any notes yet!
         
         if entries:
             lines.append("Entries:")
-            for entry in entries:
-                lines.append(entry.content)
+            for idx, entry in enumerate(entries, 1):
+                lines.append(f"#{idx}: {entry.content}")
         else:
             lines.append("No entries yet.")
         
@@ -284,8 +295,11 @@ You don't have any notes yet!
         state = notes_state.get_state(conversation_id)
         note_id = state['current_note_id']
         
+        logger.info(f"📝 Detail view command: '{command}', note_id={note_id}")
+        
         # Close note and return to list
         if command in ['close', 'exit', 'back']:
+            logger.info(f"📝 Closing note, returning to list")
             notes_state.set_state(conversation_id, view='list', current_note_id=None)
             return await self._show_notes_list(user_id)
         
