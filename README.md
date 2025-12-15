@@ -68,21 +68,40 @@ bruno-pa/
 
 ### Option 1: Docker (Recommended)
 
+The Docker setup provides a complete development environment with hot reload for both frontend and backend.
+
 ```bash
 # Clone the repository
 git clone https://github.com/meggy-ai/bruno-pa-webapp.git
 cd bruno-pa-webapp
 
-# Copy environment files
-cp frontend/.env.example frontend/.env.local
-cp backend/.env.example backend/.env
+# Set up Docker environment
+cd docker
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY (required)
 
-# Configure your environment variables
-# Edit frontend/.env.local and backend/.env
+# Start all services with hot reload
+docker-compose up --build
 
-# Start all services
-docker-compose up
+# In a new terminal, create a superuser
+docker-compose exec backend python manage.py createsuperuser
 ```
+
+**Services:**
+
+- Frontend: http://localhost:3000 (with Fast Refresh)
+- Backend API: http://localhost:8000/api (with auto-reload)
+- Admin: http://localhost:8000/admin
+
+**Features:**
+
+- ✅ Hot reload enabled for both frontend and backend
+- ✅ PostgreSQL database with persistent storage
+- ✅ Shared network for container communication
+- ✅ Volume mounts for live code updates
+- ✅ Automatic migrations on startup
+
+See [docker/README.md](docker/README.md) for detailed Docker documentation.
 
 ### Option 2: Local Development
 

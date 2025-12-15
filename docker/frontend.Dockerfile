@@ -10,6 +10,27 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
+# Development image with hot reload
+FROM base AS development
+WORKDIR /app
+
+# Copy node_modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Set environment variables for development
+ENV NODE_ENV=development \
+    NEXT_TELEMETRY_DISABLED=1 \
+    WATCHPACK_POLLING=true
+
+# Expose port
+EXPOSE 3000
+
+# Start development server with hot reload
+CMD ["npm", "run", "dev"]
+
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app

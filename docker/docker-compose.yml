@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -28,6 +26,8 @@ services:
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ../backend:/app
+      - backend_static:/app/staticfiles
+      - backend_media:/app/media
     ports:
       - "8000:8000"
     environment:
@@ -39,18 +39,20 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-jwt-secret-change-in-production}
+      - DJANGO_SETTINGS_MODULE=config.settings.development
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - bruno-network
+    restart: unless-stopped
 
   # Next.js Frontend
   frontend:
     build:
       context: ../frontend
       dockerfile: ../docker/frontend.Dockerfile
-      target: builder
+      target: development
     container_name: bruno-pa-frontend
     command: npm run dev
     volumes:
@@ -63,13 +65,19 @@ services:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api
       - NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws
+      - WATCHPACK_POLLING=true
     depends_on:
       - backend
     networks:
       - bruno-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+    driver: local
+  backend_static:
+    driver: local
+  backend_media:
     driver: local
 
 networks:
