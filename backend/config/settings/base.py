@@ -160,7 +160,7 @@ JWT_REFRESH_TOKEN_EXPIRE_DAYS = config('JWT_REFRESH_TOKEN_EXPIRE_DAYS', default=
 
 # LLM Provider Settings
 OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
-OLLAMA_BASE_URL = config('OLLAMA_BASE_URL', default='http://172.24.163.246:11434')
+OLLAMA_BASE_URL = config('OLLAMA_BASE_URL', default='http://localhost:11434')
 DEFAULT_LLM_PROVIDER = config('DEFAULT_LLM_PROVIDER', default='openai')
 DEFAULT_MODEL = config('DEFAULT_MODEL', default='gpt-4')
 

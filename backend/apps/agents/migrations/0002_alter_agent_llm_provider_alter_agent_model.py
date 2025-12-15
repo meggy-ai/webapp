@@ -18,6 +18,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="agent",
             name="model",
-            field=models.CharField(default="llama3.2:latest", max_length=100),
+            field=models.CharField(default="mistral:7b", max_length=100),
         ),
     ]

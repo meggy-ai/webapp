@@ -325,7 +325,7 @@ class Conversation(models.Model):
                 name='Meggy',
                 description='Your proactive AI companion',
                 llm_provider='ollama',
-                model='llama3.2:latest',
+                model='mistral:7b',
                 temperature=0.7,
                 max_tokens=2000,
                 system_prompt=(

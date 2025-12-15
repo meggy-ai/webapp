@@ -12,14 +12,14 @@ logger = logging.getLogger(__name__)
 class OllamaClient:
     """Client for Ollama LLM API."""
     
-    def __init__(self, base_url: str = "http://172.24.163.246:11434"):
+    def __init__(self, base_url: str = "http://localhost:11434"):
         self.base_url = base_url.rstrip('/')
         logger.info(f"Initialized OllamaClient with base_url: {self.base_url}")
     
     async def generate(
         self,
         messages: List[Dict[str, str]],
-        model: str = "llama3.2",
+        model: str = "mistral:7b",
         temperature: float = 0.7,
         max_tokens: int = 2000,
         stream: bool = False
@@ -29,7 +29,7 @@ class OllamaClient:
         
         Args:
             messages: List of message dicts with 'role' and 'content'
-            model: Model name to use (e.g., 'llama3.2', 'mistral', 'phi3')
+            model: Model name to use (e.g., 'mistral:7b', 'mistral', 'phi3')
             temperature: Sampling temperature (0-1)
             max_tokens: Maximum tokens to generate
             stream: Whether to stream the response
@@ -163,7 +163,7 @@ class LLMFactory:
             LLM client instance
         """
         if provider.lower() == 'ollama':
-            base_url = kwargs.get('base_url', 'http://172.24.163.246:11434')
+            base_url = kwargs.get('base_url', 'http://localhost:11434')
             return OllamaClient(base_url=base_url)
         else:
             raise ValueError(f"Unsupported LLM provider: {provider}")

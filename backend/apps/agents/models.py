@@ -13,7 +13,7 @@ class Agent(models.Model):
     
     # Agent configuration
     llm_provider = models.CharField(max_length=50, default='ollama')  # openai, ollama
-    model = models.CharField(max_length=100, default='llama3.2:latest')
+    model = models.CharField(max_length=100, default='mistral:7b')
     temperature = models.FloatField(default=0.7)
     max_tokens = models.IntegerField(default=2000)
     system_prompt = models.TextField(default='You are Bruno, a helpful AI assistant.')

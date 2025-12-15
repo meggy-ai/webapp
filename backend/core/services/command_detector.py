@@ -64,10 +64,10 @@ Respond with ONLY the JSON object, nothing else."""
         Args:
             llm_client: Optional LLM client. If not provided, creates a default Ollama client.
         """
-        self.llm_client = llm_client or OllamaClient(base_url="http://172.24.163.246:11434")
+        self.llm_client = llm_client or OllamaClient(base_url="http://localhost:11434")
         logger.info("Initialized CommandDetector")
     
-    async def detect_command(self, message: str, model: str = "llama3.2:3b") -> Dict:
+    async def detect_command(self, message: str, model: str = "mistral:7b") -> Dict:
         """
         Detect if a message is a command using LLM.
         
@@ -162,7 +162,7 @@ Respond with ONLY the JSON object, nothing else."""
                 'confidence': 0.0
             }
     
-    async def is_timer_command(self, message: str, model: str = "llama3.2:3b") -> bool:
+    async def is_timer_command(self, message: str, model: str = "mistral:7b") -> bool:
         """
         Check if a message is specifically a timer command.
         
@@ -176,7 +176,7 @@ Respond with ONLY the JSON object, nothing else."""
         result = await self.detect_command(message, model)
         return result['is_command'] and result['command_type'] == 'timer' and result['confidence'] >= 0.7
     
-    async def is_any_command(self, message: str, model: str = "llama3.2:3b", confidence_threshold: float = 0.7) -> bool:
+    async def is_any_command(self, message: str, model: str = "mistral", confidence_threshold: float = 0.7) -> bool:
         """
         Check if a message is any type of command.
         

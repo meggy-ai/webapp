@@ -32,7 +32,7 @@ class Command(BaseCommand):
                             '\nNo models found. Pull a model first:'
                         )
                     )
-                    self.stdout.write('  ollama pull llama3.2')
+                    self.stdout.write('  ollama pull mistral:7b')
                     return False
                 
                 # Test generation with first available model
@@ -58,7 +58,7 @@ class Command(BaseCommand):
                 self.stdout.write('\nMake sure Ollama is running:')
                 self.stdout.write('  1. Install Ollama from https://ollama.ai')
                 self.stdout.write('  2. Start Ollama service')
-                self.stdout.write('  3. Pull a model: ollama pull llama3.2')
+                self.stdout.write('  3. Pull a model: ollama pull mistral:7b')
                 await client.close()
                 return False
         
@@ -90,7 +90,7 @@ class Command(BaseCommand):
                     name='Meggy',
                     description='Your proactive AI companion powered by Ollama',
                     llm_provider='ollama',
-                    model='llama3.2',
+                    model='mistral:7b',
                     temperature=0.7,
                     max_tokens=2000,
                     system_prompt='You are Meggy, a friendly and proactive AI companion. '
