@@ -58,3 +58,11 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+# Use in-memory channel layer for development (no Redis required)
+# Old Redis for Windows (v3.2) doesn't support BZPOPMIN command needed by channels-redis
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    }
+}

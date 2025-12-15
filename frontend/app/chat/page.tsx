@@ -145,14 +145,24 @@ export default function ChatPage() {
       };
 
       ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        console.error(
+          "WebSocket error occurred. This is normal if the backend is not running."
+        );
+        console.error("Error details:", error);
         setWsConnected(false);
       };
 
-      ws.onclose = () => {
-        console.log("WebSocket closed, reconnecting in 5s...");
+      ws.onclose = (event) => {
+        console.log(
+          `WebSocket closed. Code: ${event.code}, Reason: ${event.reason || "No reason provided"}`
+        );
         setWsConnected(false);
-        setTimeout(connectWebSocket, 5000);
+
+        // Only attempt reconnect if it wasn't a clean close (code 1000)
+        if (event.code !== 1000) {
+          console.log("Attempting to reconnect in 5s...");
+          setTimeout(connectWebSocket, 5000);
+        }
       };
 
       wsRef.current = ws;
