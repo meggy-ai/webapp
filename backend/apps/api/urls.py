@@ -14,6 +14,14 @@ def api_root(request):
         'status': 'healthy'
     })
 
+@api_view(['GET'])
+def health_check(request):
+    """Health check endpoint"""
+    return Response({
+        'status': 'healthy',
+        'service': 'Bruno PA API'
+    })
+
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'agents', AgentViewSet, basename='agent')
@@ -24,6 +32,9 @@ router.register(r'timers', TimerViewSet, basename='timer')
 urlpatterns = [
     # Root API endpoint
     path('', api_root, name='api_root'),
+    
+    # Health check endpoint
+    path('health/', health_check, name='health_check'),
     
     # Authentication endpoints
     path('auth/register/', register, name='register'),

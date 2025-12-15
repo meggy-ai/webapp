@@ -3,6 +3,7 @@ Development settings for Bruno PA project.
 """
 
 from .base import *
+import os
 
 DEBUG = True
 
@@ -59,10 +60,14 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Use in-memory channel layer for development (no Redis required)
-# Old Redis for Windows (v3.2) doesn't support BZPOPMIN command needed by channels-redis
+# Redis Channel Layer for Django Channels (WebSockets)
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer'
-    }
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [REDIS_URL],
+        },
+    },
 }
