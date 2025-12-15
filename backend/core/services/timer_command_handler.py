@@ -46,7 +46,7 @@ Respond with ONLY the JSON object."""
 
     def __init__(self, llm_client: Optional[OllamaClient] = None):
         """Initialize timer command handler."""
-        self.llm_client = llm_client or OllamaClient(base_url="http://localhost:11434")
+        self.llm_client = llm_client or OllamaClient(base_url="http://172.24.163.246:11434")
         logger.info("Initialized TimerCommandHandler")
     
     async def parse_command(self, message: str, model: str = "llama3.2:3b") -> Dict:

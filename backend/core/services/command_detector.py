@@ -64,7 +64,7 @@ Respond with ONLY the JSON object, nothing else."""
         Args:
             llm_client: Optional LLM client. If not provided, creates a default Ollama client.
         """
-        self.llm_client = llm_client or OllamaClient(base_url="http://localhost:11434")
+        self.llm_client = llm_client or OllamaClient(base_url="http://172.24.163.246:11434")
         logger.info("Initialized CommandDetector")
     
     async def detect_command(self, message: str, model: str = "llama3.2:3b") -> Dict:

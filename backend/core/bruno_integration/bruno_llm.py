@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class OllamaClient:
     """Client for Ollama LLM API."""
     
-    def __init__(self, base_url: str = "http://localhost:11434"):
+    def __init__(self, base_url: str = "http://172.24.163.246:11434"):
         self.base_url = base_url.rstrip('/')
         logger.info(f"Initialized OllamaClient with base_url: {self.base_url}")
     
@@ -163,7 +163,7 @@ class LLMFactory:
             LLM client instance
         """
         if provider.lower() == 'ollama':
-            base_url = kwargs.get('base_url', 'http://localhost:11434')
+            base_url = kwargs.get('base_url', 'http://172.24.163.246:11434')
             return OllamaClient(base_url=base_url)
         else:
             raise ValueError(f"Unsupported LLM provider: {provider}")

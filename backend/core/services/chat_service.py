@@ -71,7 +71,7 @@ class ChatService:
         # Create LLM client
         llm_client = LLMFactory.create_client(
             provider=config.llm_provider,
-            base_url='http://localhost:11434'  # Ollama default URL
+            base_url='http://172.24.163.246:11434'  # Ollama default URL
         )
         
         # Create Bruno agent

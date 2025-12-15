@@ -243,7 +243,7 @@ DATABASE_URL=postgresql://user:password@localhost:5432/bruno_pa
 
 # LLM Providers
 OPENAI_API_KEY=your-openai-key-here
-OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_BASE_URL=http://172.24.163.246:11434
 
 # CORS
 CORS_ALLOWED_ORIGINS=http://localhost:3000

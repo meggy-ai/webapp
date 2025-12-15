@@ -378,7 +378,7 @@ JWT_SECRET_KEY=your-jwt-secret-here
 OPENAI_API_KEY=sk-...
 
 # Ollama
-OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_BASE_URL=http://172.24.163.246:11434
 ```
 
 **Optional:**
@@ -453,7 +453,7 @@ ollama serve
 Add to backend `.env`:
 
 ```env
-OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_BASE_URL=http://172.24.163.246:11434
 DEFAULT_LLM_PROVIDER=ollama
 DEFAULT_MODEL=llama2
 ```
@@ -466,7 +466,7 @@ Configure both providers and switch between them in the app:
 
 ```env
 OPENAI_API_KEY=sk-...
-OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_BASE_URL=http://172.24.163.246:11434
 DEFAULT_LLM_PROVIDER=openai  # or ollama
 ```
 
@@ -617,7 +617,7 @@ cat .env.local | grep NEXT_PUBLIC_API_URL
 
 ```bash
 # Check if Ollama is running
-curl http://localhost:11434/api/version
+curl http://172.24.163.246:11434/api/version
 
 # Start Ollama
 ollama serve
