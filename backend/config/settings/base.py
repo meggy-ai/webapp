@@ -5,6 +5,7 @@ Django base settings for Bruno PA project.
 import os
 from pathlib import Path
 from decouple import config
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -74,16 +75,48 @@ ASGI_APPLICATION = 'config.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='bruno_pa'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default='postgres'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
+# Support both DATABASE_URL and individual DB_* environment variables
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    # Use DATABASE_URL if provided
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
     }
-}
+else:
+    # Fallback to individual database environment variables
+    # Support flexible database engine selection
+    DB_ENGINE = config('DB_ENGINE', default='postgresql')
+    
+    # Map engine types to Django backend strings
+    ENGINE_MAPPING = {
+        'postgresql': 'django.db.backends.postgresql',
+        'sqlite3': 'django.db.backends.sqlite3',
+        'mysql': 'django.db.backends.mysql',
+    }
+    
+    django_engine = ENGINE_MAPPING.get(DB_ENGINE, 'django.db.backends.postgresql')
+    
+    if DB_ENGINE == 'sqlite3':
+        # SQLite configuration
+        DATABASES = {
+            'default': {
+                'ENGINE': django_engine,
+                'NAME': BASE_DIR / config('DB_NAME', default='db.sqlite3'),
+            }
+        }
+    else:
+        # PostgreSQL/MySQL configuration
+        DATABASES = {
+            'default': {
+                'ENGINE': django_engine,
+                'NAME': config('DB_NAME', default='bruno_pa'),
+                'USER': config('DB_USER', default='postgres'),
+                'PASSWORD': config('DB_PASSWORD', default='postgres'),
+                'HOST': config('DB_HOST', default='localhost'),
+                'PORT': config('DB_PORT', default='5432'),
+            }
+        }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -170,6 +203,9 @@ BRUNO_LOG_LEVEL = config('BRUNO_LOG_LEVEL', default='INFO')
 # Channels Configuration
 ASGI_APPLICATION = 'config.asgi.application'
 
+# Redis Configuration for Django Channels (WebSockets)
+REDIS_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+
 CHANNEL_LAYERS = {
     'default': {
         # Use Redis for multi-process WebSocket communication
@@ -177,7 +213,7 @@ CHANNEL_LAYERS = {
         # Start Redis: redis-server
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [REDIS_URL],
         },
     },
 }

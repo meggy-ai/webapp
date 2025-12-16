@@ -41,12 +41,12 @@ Write-Host ""
 
 # Start Django backend server
 Write-Host "Starting Django backend server..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot\..\backend'; .venv\Scripts\Activate.ps1; Write-Host 'Django Backend Server' -ForegroundColor Cyan; python manage.py runserver 0.0.0.0:8000"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot\..\backend'; .venv\Scripts\Activate.ps1; `$env:DJANGO_SETTINGS_MODULE='config.settings.development'; Write-Host 'Django Backend Server' -ForegroundColor Cyan; python manage.py runserver"
 Start-Sleep -Seconds 2
 
 # Start timer monitor service
 Write-Host "Starting timer monitor service..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot\..\backend'; .venv\Scripts\Activate.ps1; Write-Host 'Timer Monitor Service' -ForegroundColor Magenta; python manage.py monitor_timers"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot\..\backend'; .venv\Scripts\Activate.ps1; `$env:DJANGO_SETTINGS_MODULE='config.settings.development'; Write-Host 'Timer Monitor Service' -ForegroundColor Magenta; python manage.py monitor_timers"
 Start-Sleep -Seconds 2
 
 # Start Next.js frontend server

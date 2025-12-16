@@ -7,17 +7,8 @@ import os
 
 DEBUG = True
 
-# Use PostgreSQL for development (from Docker container)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'bruno_pa'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'Test@123'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
-}
+# Database configuration is inherited from base.py using decouple
+# All database settings are loaded from .env file
 
 INSTALLED_APPS += [
     'debug_toolbar',
@@ -61,14 +52,5 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Redis Channel Layer for Django Channels (WebSockets)
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
-
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [REDIS_URL],
-        },
-    },
-}
+# Redis configuration is inherited from base.py using decouple
+# REDIS_URL can be set in .env file
