@@ -41,7 +41,7 @@ Write-Host ""
 
 # Start Django backend server
 Write-Host "Starting Django backend server..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot\..\backend'; .venv\Scripts\Activate.ps1; Write-Host 'Django Backend Server' -ForegroundColor Cyan; python manage.py runserver"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot\..\backend'; .venv\Scripts\Activate.ps1; Write-Host 'Django Backend Server' -ForegroundColor Cyan; python manage.py runserver 0.0.0.0:8000"
 Start-Sleep -Seconds 2
 
 # Start timer monitor service
