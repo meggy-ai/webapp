@@ -180,10 +180,10 @@ export default function TimerDisplay({
 
   const getTimerColor = (timer: Timer): string => {
     const remaining = getClientTimeRemaining(timer);
-    if (timer.status === "paused") return "text-gray-500";
-    if (remaining <= 180) return "text-red-500"; // 3 minutes or less
-    if (remaining <= 600) return "text-yellow-500"; // 10 minutes or less
-    return "text-green-500";
+    if (timer.status === "paused") return "text-zinc-400 dark:text-zinc-500";
+    if (remaining <= 180) return "text-rose-500 dark:text-rose-400"; // 3 minutes or less - softer red
+    if (remaining <= 600) return "text-amber-500 dark:text-amber-400"; // 10 minutes or less - warmer yellow
+    return "text-emerald-500 dark:text-emerald-400"; // softer green
   };
 
   const getProgressPercentage = (timer: Timer): number => {
@@ -201,34 +201,37 @@ export default function TimerDisplay({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Clock className="h-5 w-5" />
-          Active Timers
-        </h3>
-        <div className="flex items-center gap-2">
-          {timers.length > 0 && (
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={handleCancelAll}
-              title="Cancel all active timers"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Cancel All
-            </Button>
-          )}
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold flex items-center gap-2 text-zinc-800 dark:text-zinc-200">
+            <Clock className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            Active Timers
+            {timers.length > 0 && (
+              <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-full">
+                {timers.length}
+              </span>
+            )}
+          </h3>
+        </div>
+        
+        {/* Action buttons row */}
+        <div className="flex items-center justify-between gap-3">
           <Dialog
             open={isCreateDialogOpen}
             onOpenChange={setIsCreateDialogOpen}
           >
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline">
+              <Button 
+                size="sm" 
+                className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white border-0 shadow-sm transition-all duration-200"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 New Timer
               </Button>
             </DialogTrigger>
+            
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create New Timer</DialogTitle>
@@ -278,29 +281,42 @@ export default function TimerDisplay({
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          
+          {timers.length > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950 hover:border-rose-300 dark:hover:border-rose-700 transition-colors"
+              onClick={handleCancelAll}
+              title="Cancel all active timers"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancel All
+            </Button>
+          )}
         </div>
       </div>
 
       {timers.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              No active timers. Create one to get started!
-            </p>
-          </CardContent>
-        </Card>
+        <div className="text-center py-8 px-4">
+          <Clock className="h-12 w-12 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+            No active timers. Create one to get started!
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
           {timers.map((timer) => (
-            <Card key={timer.id}>
+            <Card key={timer.id} className="border-zinc-200 dark:border-zinc-800 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center justify-between">
-                  <span>{timer.name}</span>
-                  <div className="flex items-center gap-2">
+                  <span className="text-zinc-800 dark:text-zinc-200 font-medium">{timer.name}</span>
+                  <div className="flex items-center gap-1">
                     {timer.status === "active" && (
                       <Button
                         size="sm"
                         variant="ghost"
+                        className="hover:bg-indigo-50 dark:hover:bg-indigo-950 text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                         onClick={() => handlePause(timer.id)}
                       >
                         <Pause className="h-4 w-4" />
@@ -310,6 +326,7 @@ export default function TimerDisplay({
                       <Button
                         size="sm"
                         variant="ghost"
+                        className="hover:bg-emerald-50 dark:hover:bg-emerald-950 text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                         onClick={() => handleResume(timer.id)}
                       >
                         <Play className="h-4 w-4" />
@@ -318,6 +335,7 @@ export default function TimerDisplay({
                     <Button
                       size="sm"
                       variant="ghost"
+                      className="hover:bg-rose-50 dark:hover:bg-rose-950 text-zinc-500 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
                       onClick={() => handleCancel(timer.id)}
                     >
                       <X className="h-4 w-4" />
@@ -326,9 +344,9 @@ export default function TimerDisplay({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div
-                    className={`text-3xl font-mono font-bold ${getTimerColor(
+                    className={`text-2xl font-mono font-bold tracking-tight ${getTimerColor(
                       timer
                     )}`}
                   >
@@ -336,14 +354,14 @@ export default function TimerDisplay({
                   </div>
 
                   {/* Progress bar */}
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all ${
+                      className={`h-full transition-all duration-300 ${
                         getClientTimeRemaining(timer) <= 180
-                          ? "bg-red-500"
+                          ? "bg-gradient-to-r from-rose-500 to-red-500 dark:from-rose-400 dark:to-red-400"
                           : getClientTimeRemaining(timer) <= 600
-                            ? "bg-yellow-500"
-                            : "bg-green-500"
+                            ? "bg-gradient-to-r from-amber-500 to-orange-500 dark:from-amber-400 dark:to-orange-400"
+                            : "bg-gradient-to-r from-emerald-500 to-green-500 dark:from-emerald-400 dark:to-green-400"
                       }`}
                       style={{ width: `${getProgressPercentage(timer)}%` }}
                     />
