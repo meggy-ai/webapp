@@ -1,11 +1,10 @@
 import axios from "axios";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+import { config } from "./config";
 
 // Create axios instance
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: config.api.baseUrl,
+  timeout: config.api.timeout,
   headers: {
     "Content-Type": "application/json",
   },
@@ -45,7 +44,7 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem("refresh_token");
         if (refreshToken) {
           console.log("Attempting to refresh token...");
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
+          const response = await axios.post(`${config.api.baseUrl}/auth/refresh/`, {
             refresh_token: refreshToken,
           });
 
