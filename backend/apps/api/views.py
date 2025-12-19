@@ -156,7 +156,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
             
             # Simple regex check for timer commands as fallback
             import re
-            timer_create_pattern = r'(?:set|create|start|make)?\s*(?:a\s+)?timer\s+(?:for\s+)?(\d+)\s*(?:min|mins|minute|minutes)'
+            timer_create_pattern = r'(?:(?:set|create|start|make)\s*(?:a\s+)?timer\s+(?:for\s+)?(\d+)\s*(?:min|mins|minute|minutes)|(?:remind\s+me\s+in\s+)(\d+)\s*(?:min|mins|minute|minutes))'
             timer_cancel_all_pattern = r'(?:cancel|stop|delete|clear|remove)\s+(?:all|every)\s+(?:timers?|alarms?)'
             
             timer_create_match = re.search(timer_create_pattern, content.lower())
@@ -171,7 +171,8 @@ class ConversationViewSet(viewsets.ModelViewSet):
                 
                 # If regex matched for create, use simple parsing
                 if timer_create_match:
-                    duration_minutes = int(timer_create_match.group(1))
+                    # Extract duration from either capture group (timer pattern or remind pattern)
+                    duration_minutes = int(timer_create_match.group(1) or timer_create_match.group(2))
                     timer_name = f"{duration_minutes} minute timer"
                     
                     command_data = {
