@@ -42,9 +42,9 @@ Review frontend code to identify hardcoded backend API URLs and centralize confi
 - [x] Implement configuration loader utility
 
 #### 2. Replace Hardcoded URLs
-- [ ] Update API base URL references
-- [ ] Update WebSocket URL references  
-- [ ] Remove duplicate api.ts files
+- [x] Update API base URL references
+- [x] Update WebSocket URL references  
+- [x] Remove duplicate api.ts files
 
 #### 3. Environment Management
 - [ ] Create .env.local template
@@ -70,21 +70,21 @@ Review frontend code to identify hardcoded backend API URLs and centralize confi
 - [x] Include development and production examples
 
 ### 2.1 Update API Configuration  
-- [ ] Replace hardcoded URLs in `src/lib/api.ts`
-- [ ] Replace hardcoded URLs in `lib/api.ts` (check if duplicate)
-- [ ] Import config from centralized location
-- [ ] Remove fallback hardcoded values
+- [x] Replace hardcoded URLs in `src/lib/api.ts`
+- [x] Replace hardcoded URLs in `lib/api.ts` (check if duplicate)
+- [x] Import config from centralized location
+- [x] Remove fallback hardcoded values
 
 ### 2.2 Update WebSocket Configuration
-- [ ] Add `NEXT_PUBLIC_WS_URL` environment variable support
-- [ ] Update `app/chat/page.tsx` WebSocket connection
-- [ ] Use centralized config for WebSocket URL
-- [ ] Add fallback/validation for WebSocket URL
+- [x] Add `NEXT_PUBLIC_WS_URL` environment variable support
+- [x] Update `app/chat/page.tsx` WebSocket connection
+- [x] Use centralized config for WebSocket URL
+- [x] Add fallback/validation for WebSocket URL
 
 ### 2.3 Code Cleanup
-- [ ] Remove duplicate `lib/api.ts` if it exists  
-- [ ] Consolidate API configuration in one location
-- [ ] Update all imports to use centralized config
+- [x] Remove duplicate `lib/api.ts` if it exists  
+- [x] Consolidate API configuration in one location
+- [x] Update all imports to use centralized config
 
 ### 3.1 Environment File Management
 - [ ] Create `.env.local` for local development
@@ -153,9 +153,14 @@ NEXT_TELEMETRY_DISABLED=1
 - [x] Built lib/config.ts with TypeScript interfaces
 - [x] Added environment validation and error handling
 - [x] Created .env.local.example template
+- [x] Removed duplicate api.ts files
+- [x] Updated API configuration to use centralized config
+- [x] Updated WebSocket URL in chat page
+- [x] Created .env.local for local development
+- [x] Tested configuration integration
 
 ### 🚧 In Progress:
-- [ ] URL replacement and code updates
+- [ ] Environment file management and documentation
 
 ### ⏳ Pending:
 - [ ] URL replacement

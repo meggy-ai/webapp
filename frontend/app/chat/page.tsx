@@ -15,6 +15,7 @@ import {
   StickyNote,
 } from "lucide-react";
 import { conversationsAPI, messagesAPI, timersAPI } from "@/lib/api";
+import { config } from "@/lib/config";
 import TimerDisplay from "@/components/chat/TimerDisplay";
 
 interface Message {
@@ -72,9 +73,7 @@ export default function ChatPage() {
       const token = localStorage.getItem("access_token");
       if (!token) return;
 
-      const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${wsProtocol}//localhost:8000/ws/chat/?token=${token}`;
-
+      const wsUrl = `${config.websocket.url}/chat/?token=${token}`;
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
