@@ -54,14 +54,15 @@ class TimerAbility:
         command_lower = command.lower().strip()
         
         # Regex patterns for common timer commands
-        timer_create_pattern = r'(?:(?:set|create|start|make)\s*(?:a\s+)?timer\s+(?:for\s+)?(\d+)\s*(?:min|mins|minute|minutes)|(?:remind\s+me\s+in\s+)(\d+)\s*(?:min|mins|minute|minutes))'
+        # Supports: "set timer for X mins", "timer for X mins", "X minute timer", "remind me in X minutes"
+        timer_create_pattern = r'(?:(?:set|create|start|make)\s*(?:a\s+)?timer\s+(?:for\s+)?(\d+)\s*(?:min|mins|minute|minutes)|timer\s+(?:for\s+)?(\d+)\s*(?:min|mins|minute|minutes)|(\d+)\s*(?:min|mins|minute|minutes)\s+timer|(?:remind\s+me\s+in\s+)(\d+)\s*(?:min|mins|minute|minutes))'
         timer_cancel_all_pattern = r'(?:cancel|stop|delete|clear|remove)\s+(?:all|every)\s+(?:timers?|alarms?)'
         timer_cancel_pattern = r'(?:cancel|stop|delete|clear|remove)\s+timer(?:\s+(.+))?'
         
         # Check for create timer
         create_match = re.search(timer_create_pattern, command_lower)
         if create_match:
-            duration_minutes = int(create_match.group(1) or create_match.group(2))
+            duration_minutes = int(create_match.group(1) or create_match.group(2) or create_match.group(3) or create_match.group(4))
             
             # Extract timer name from original command if specified
             timer_name = self._extract_timer_name(command, duration_minutes)
@@ -105,10 +106,12 @@ class TimerAbility:
         # Look for patterns like "set timer for 5 minutes water" or "water timer for 5 minutes"
         command_lower = command.lower().strip()
         
-        # Remove common timer command words and duration
-        cleaned = re.sub(r'(?:set|create|start|make)\s*(?:a\s+)?timer\s*(?:for\s+)?', '', command_lower)
+        # Remove common timer command words and duration more carefully
+        # Use word boundaries to ensure we match complete words
+        cleaned = re.sub(r'(?:set|create|start|make)\s*(?:a\s+)?\btimer\b\s*(?:for\s+)?', '', command_lower)
+        cleaned = re.sub(r'\btimer\b\s*(?:for\s+)?', '', cleaned)  # Also remove standalone "timer for"
         cleaned = re.sub(r'remind\s+me\s+in\s+', '', cleaned)
-        cleaned = re.sub(r'\d+\s*(?:min|mins|minute|minutes)', '', cleaned)
+        cleaned = re.sub(r'\d+\s*(?:mins?|minutes?)\b', '', cleaned)  # Remove duration (use word boundary)
         cleaned = re.sub(r'\s+', ' ', cleaned).strip()
         
         # If there's meaningful text left, use it as the name
