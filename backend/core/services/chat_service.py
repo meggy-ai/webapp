@@ -34,6 +34,10 @@ class ChatService:
         from core.bruno_integration.notes_ability import NotesAbility
         self.notes_ability = NotesAbility()
         
+        # Initialize timer ability
+        from core.bruno_integration.timer_ability import TimerAbility
+        self.timer_ability = TimerAbility()
+        
         # Initialize command detector
         self.command_detector = CommandDetector()
         
@@ -79,7 +83,8 @@ class ChatService:
             config=config,
             llm_client=llm_client,
             memory_manager=self.memory_manager,
-            notes_ability=self.notes_ability
+            notes_ability=self.notes_ability,
+            timer_ability=self.timer_ability
         )
         
         # Cache the agent instance

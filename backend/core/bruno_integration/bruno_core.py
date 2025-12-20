@@ -22,11 +22,12 @@ class AgentConfig:
 class BrunoAgent:
     """Core Bruno AI Agent."""
     
-    def __init__(self, config: AgentConfig, llm_client, memory_manager=None, notes_ability=None):
+    def __init__(self, config: AgentConfig, llm_client, memory_manager=None, notes_ability=None, timer_ability=None):
         self.config = config
         self.llm_client = llm_client
         self.memory_manager = memory_manager
         self.notes_ability = notes_ability
+        self.timer_ability = timer_ability
         logger.info(f"Initialized BrunoAgent: {config.name} with {config.llm_provider}/{config.model}")
     
     async def process_message(
@@ -49,6 +50,23 @@ class BrunoAgent:
             Dict containing response, tokens used, and metadata
         """
         try:
+            # Check if this is a timer command first
+            if self.timer_ability and user_id:
+                timer_response = await self.timer_ability.handle_timer_command(
+                    user_id=user_id,
+                    conversation_id=conversation_id,
+                    command=user_message
+                )
+                if timer_response:
+                    # This was a timer command - return timer response
+                    return {
+                        "content": timer_response,
+                        "model": self.config.model,
+                        "tokens_used": 0,
+                        "success": True,
+                        "is_timer_response": True
+                    }
+            
             # Check if this is a notes command
             if self.notes_ability and user_id:
                 notes_response = await self.notes_ability.handle_notes_command(

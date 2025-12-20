@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate
 from django.utils import timezone
 from datetime import timedelta
 from asgiref.sync import async_to_sync
+import logging
 from apps.accounts.models import User
 from apps.agents.models import Agent
 from apps.chat.models import Conversation, Message, Timer
@@ -114,148 +115,29 @@ class ConversationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Use LLM to detect if this is a command (unless overridden by frontend)
-        import logging
-        logger = logging.getLogger(__name__)
+        # Delegate to message service for business logic
+        from core.services.message_service import MessageService
+        message_service = MessageService()
         
-        detection_result = None
-        if is_task_command_override is None:
-            logger.info(f"🔍 Using LLM to detect command for message: '{content}'")
-            
-            detection_result = async_to_sync(chat_service.command_detector.detect_command)(content)
-            is_task_command = detection_result['is_command'] and detection_result['confidence'] >= 0.7
-            
-            logger.info(f"📊 Command detection: is_command={is_task_command}, type={detection_result['command_type']}, confidence={detection_result['confidence']}")
-        else:
-            is_task_command = is_task_command_override
-        
-        # Record user message for engagement tracking
-        conversation.record_user_message()
-        
-        # If this is a response to a proactive message, record it
-        if is_response_to_proactive:
-            conversation.record_proactive_response()
-        
-        # Create user message
-        user_message = Message.objects.create(
+        result = message_service.process_message(
             conversation=conversation,
-            role='user',
-            content=content
+            content=content,
+            is_response_to_proactive=is_response_to_proactive,
+            is_task_command_override=is_task_command_override
         )
         
-        # Update conversation title if this is the first message
-        if conversation.messages.count() == 1 and conversation.title == 'New Conversation':
-            # Generate title from first user message (first 50 chars)
-            new_title = content[:50] + ('...' if len(content) > 50 else '')
-            conversation.title = new_title
-            conversation.save()
+        # Format response
+        response_data = {
+            'user_message': MessageSerializer(result['user_message']).data,
+            'assistant_message': MessageSerializer(result['assistant_message']).data,
+            'success': result['success']
+        }
         
-        try:
-            # Check if this is a timer command and handle it
-            timer_result = None
-            
-            # Simple regex check for timer commands as fallback
-            import re
-            timer_create_pattern = r'(?:(?:set|create|start|make)\s*(?:a\s+)?timer\s+(?:for\s+)?(\d+)\s*(?:min|mins|minute|minutes)|(?:remind\s+me\s+in\s+)(\d+)\s*(?:min|mins|minute|minutes))'
-            timer_cancel_all_pattern = r'(?:cancel|stop|delete|clear|remove)\s+(?:all|every)\s+(?:timers?|alarms?)'
-            
-            timer_create_match = re.search(timer_create_pattern, content.lower())
-            timer_cancel_all_match = re.search(timer_cancel_all_pattern, content.lower())
-            
-            if timer_create_match or timer_cancel_all_match or (is_task_command and detection_result and detection_result.get('command_type') == 'timer'):
-                from core.services.timer_command_handler import TimerCommandHandler
-                timer_handler = TimerCommandHandler()
-                
-                logger.info(f"⏱️  Timer command detected - Create: {timer_create_match}, Cancel All: {timer_cancel_all_match}, LLM: {is_task_command and detection_result}")
-                logger.info(f"⏱️  Parsing timer command: '{content}'")
-                
-                # If regex matched for create, use simple parsing
-                if timer_create_match:
-                    # Extract duration from either capture group (timer pattern or remind pattern)
-                    duration_minutes = int(timer_create_match.group(1) or timer_create_match.group(2))
-                    timer_name = f"{duration_minutes} minute timer"
-                    
-                    command_data = {
-                        'action': 'create',
-                        'duration_minutes': duration_minutes,
-                        'timer_name': timer_name,
-                        'timer_id': None
-                    }
-                    logger.info(f"⏱️  Using regex-parsed CREATE command: {command_data}")
-                # If regex matched for cancel all
-                elif timer_cancel_all_match:
-                    command_data = {
-                        'action': 'cancel_all',
-                        'duration_minutes': None,
-                        'timer_name': None,
-                        'timer_id': None
-                    }
-                    logger.info(f"⏱️  Using regex-parsed CANCEL ALL command: {command_data}")
-                else:
-                    # Use LLM parsing
-                    command_data = async_to_sync(timer_handler.parse_command)(content)
-                    logger.info(f"⏱️  Using LLM-parsed command: {command_data}")
-                
-                if command_data['action'] != 'none':
-                    timer_result = timer_handler.execute_command(request.user, command_data)
-                    logger.info(f"⏱️  Timer command executed: {timer_result}")
-            
-            # Process message through Bruno chat service
-            response = async_to_sync(chat_service.process_message)(
-                conversation_id=str(conversation.id),
-                user_message=content,
-                agent_id=str(conversation.agent.id),
-                user_id=str(request.user.id),
-                is_task_command=is_task_command
-            )
-            
-            # If timer command was successful, append result to response
-            if timer_result and timer_result['success']:
-                response['content'] = timer_result['message']
-            
-            # Create assistant message with response
-            assistant_message = Message.objects.create(
-                conversation=conversation,
-                role='assistant',
-                content=response.get('content', 'I apologize, but I encountered an error.'),
-                model=response.get('model', conversation.agent.model),
-                tokens_used=response.get('tokens_used', 0)
-            )
-            
-            # Extract and save long-term memories from user message (async background task)
-            try:
-                from core.bruno_integration.memory_extraction import memory_extractor
-                async_to_sync(memory_extractor.extract_memories_from_conversation)(
-                    user_id=str(request.user.id),
-                    conversation_text=content,
-                    message_id=str(user_message.id)
-                )
-            except Exception as mem_error:
-                # Don't fail the request if memory extraction fails
-                import logging
-                logging.getLogger(__name__).warning(f"Memory extraction failed: {mem_error}")
-            
-            return Response({
-                'user_message': MessageSerializer(user_message).data,
-                'assistant_message': MessageSerializer(assistant_message).data,
-                'success': response.get('success', True)
-            })
-            
-        except Exception as e:
-            # Create error response message
-            assistant_message = Message.objects.create(
-                conversation=conversation,
-                role='assistant',
-                content='I apologize, but I encountered an error processing your message. Please try again.',
-                model=conversation.agent.model
-            )
-            
-            return Response({
-                'user_message': MessageSerializer(user_message).data,
-                'assistant_message': MessageSerializer(assistant_message).data,
-                'success': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if not result['success']:
+            response_data['error'] = result.get('error')
+            return Response(response_data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response(response_data)
     
     @action(detail=True, methods=['get'])
     def check_proactive(self, request, pk=None):
@@ -265,50 +147,21 @@ class ConversationViewSet(viewsets.ModelViewSet):
         """
         conversation = self.get_object()
         
-        # Check if we should send a proactive message
-        should_send, reason = conversation.should_send_proactive_message()
+        # Delegate to proactive message service
+        from core.services.proactive_message_service import ProactiveMessageService
+        proactive_service = ProactiveMessageService()
         
-        if not should_send:
-            return Response({
-                'should_send': False,
-                'reason': reason,
-                'proactivity_level': conversation.proactivity_level
-            })
+        result = proactive_service.check_and_generate_proactive_message(conversation)
         
-        try:
-            # Generate proactive message
-            from core.bruno_integration.proactive_messages import proactive_message_generator
-            message_data = async_to_sync(proactive_message_generator.generate_proactive_message)(
-                user_id=str(request.user.id),
-                conversation_id=str(conversation.id),
-                proactivity_level=conversation.proactivity_level
-            )
-            
-            # Record that we sent a proactive message
-            conversation.record_proactive_message()
-            
-            # Create the proactive message in the database
-            proactive_message = Message.objects.create(
-                conversation=conversation,
-                role='assistant',
-                content=message_data['content'],
-                model=conversation.agent.model
-            )
-            
-            return Response({
-                'should_send': True,
-                'message': MessageSerializer(proactive_message).data,
-                'proactivity_level': conversation.proactivity_level,
-                'metadata': message_data
-            })
-            
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).error(f"Error generating proactive message: {e}")
-            return Response({
-                'should_send': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if not result['should_send']:
+            return Response(result)
+        
+        if 'error' in result:
+            return Response(result, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Serialize the message for response
+        result['message'] = MessageSerializer(result['message']).data
+        return Response(result)
     
     @action(detail=True, methods=['post'])
     def adjust_proactivity(self, request, pk=None):
@@ -317,104 +170,37 @@ class ConversationViewSet(viewsets.ModelViewSet):
         Normally this happens automatically, but can be triggered manually for testing.
         """
         conversation = self.get_object()
-        old_level = conversation.proactivity_level
         
-        conversation.adjust_proactivity()
+        # Delegate to proactive message service
+        from core.services.proactive_message_service import ProactiveMessageService
+        proactive_service = ProactiveMessageService()
         
-        return Response({
-            'old_level': old_level,
-            'new_level': conversation.proactivity_level,
-            'total_proactive': conversation.total_proactive_messages,
-            'responses_received': conversation.proactive_responses_received,
-            'response_rate': (
-                conversation.proactive_responses_received / conversation.total_proactive_messages
-                if conversation.total_proactive_messages > 0 else 0
-            )
-        })
+        result = proactive_service.adjust_proactivity(conversation)
+        return Response(result)
     
     @action(detail=True, methods=['get'])
     def proactivity_settings(self, request, pk=None):
         """Get current proactivity settings for the conversation."""
         conversation = self.get_object()
         
-        return Response({
-            'proactive_messages_enabled': conversation.proactive_messages_enabled,
-            'auto_adjust_proactivity': conversation.auto_adjust_proactivity,
-            'proactivity_level': conversation.proactivity_level,
-            'min_proactivity_level': conversation.min_proactivity_level,
-            'max_proactivity_level': conversation.max_proactivity_level,
-            'quiet_hours_start': conversation.quiet_hours_start.isoformat() if conversation.quiet_hours_start else None,
-            'quiet_hours_end': conversation.quiet_hours_end.isoformat() if conversation.quiet_hours_end else None,
-            # Stats
-            'total_proactive_messages': conversation.total_proactive_messages,
-            'proactive_responses_received': conversation.proactive_responses_received,
-            'response_rate': (
-                conversation.proactive_responses_received / conversation.total_proactive_messages
-                if conversation.total_proactive_messages > 0 else 0
-            )
-        })
+        # Delegate to proactive message service
+        from core.services.proactive_message_service import ProactiveMessageService
+        proactive_service = ProactiveMessageService()
+        
+        settings = proactive_service.get_proactivity_settings(conversation)
+        return Response(settings)
     
     @action(detail=True, methods=['patch'])
     def update_proactivity_settings(self, request, pk=None):
         """Update proactivity settings for the conversation."""
         conversation = self.get_object()
         
-        # Update enabled/disabled
-        if 'proactive_messages_enabled' in request.data:
-            conversation.proactive_messages_enabled = request.data['proactive_messages_enabled']
+        # Delegate to proactive message service
+        from core.services.proactive_message_service import ProactiveMessageService
+        proactive_service = ProactiveMessageService()
         
-        # Update auto-adjust setting
-        if 'auto_adjust_proactivity' in request.data:
-            conversation.auto_adjust_proactivity = request.data['auto_adjust_proactivity']
-        
-        # Update manual proactivity level
-        if 'proactivity_level' in request.data:
-            level = int(request.data['proactivity_level'])
-            if 1 <= level <= 10:
-                conversation.proactivity_level = level
-        
-        # Update min/max bounds
-        if 'min_proactivity_level' in request.data:
-            min_level = int(request.data['min_proactivity_level'])
-            if 1 <= min_level <= 10:
-                conversation.min_proactivity_level = min_level
-        
-        if 'max_proactivity_level' in request.data:
-            max_level = int(request.data['max_proactivity_level'])
-            if 1 <= max_level <= 10:
-                conversation.max_proactivity_level = max_level
-        
-        # Update quiet hours
-        if 'quiet_hours_start' in request.data:
-            from datetime import datetime
-            time_str = request.data['quiet_hours_start']
-            if time_str:
-                conversation.quiet_hours_start = datetime.strptime(time_str, '%H:%M').time()
-            else:
-                conversation.quiet_hours_start = None
-        
-        if 'quiet_hours_end' in request.data:
-            from datetime import datetime
-            time_str = request.data['quiet_hours_end']
-            if time_str:
-                conversation.quiet_hours_end = datetime.strptime(time_str, '%H:%M').time()
-            else:
-                conversation.quiet_hours_end = None
-        
-        conversation.save()
-        
-        return Response({
-            'message': 'Proactivity settings updated successfully',
-            'settings': {
-                'proactive_messages_enabled': conversation.proactive_messages_enabled,
-                'auto_adjust_proactivity': conversation.auto_adjust_proactivity,
-                'proactivity_level': conversation.proactivity_level,
-                'min_proactivity_level': conversation.min_proactivity_level,
-                'max_proactivity_level': conversation.max_proactivity_level,
-                'quiet_hours_start': conversation.quiet_hours_start.isoformat() if conversation.quiet_hours_start else None,
-                'quiet_hours_end': conversation.quiet_hours_end.isoformat() if conversation.quiet_hours_end else None,
-            }
-        })
+        result = proactive_service.update_proactivity_settings(conversation, request.data)
+        return Response(result)
 
 
 class MessageViewSet(viewsets.ReadOnlyModelViewSet):
@@ -480,7 +266,6 @@ class TimerViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         """Create a new timer for the authenticated user."""
-        import logging
         logger = logging.getLogger(__name__)
         
         # Calculate end time based on duration
