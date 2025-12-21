@@ -187,6 +187,73 @@ class TestTimerViewSetControls:
         # Verify in database
         active_timer.refresh_from_db()
         assert active_timer.status == 'cancelled'
+    
+    @patch('asgiref.sync.async_to_sync')
+    def test_cancel_all_timers(self, mock_async, authenticated_client, test_user):
+        """POST /api/timers/cancel_all/ - Cancel all active and paused timers."""
+        # Create multiple timers
+        Timer.objects.create(
+            user=test_user,
+            name='Timer 1',
+            duration_seconds=300,
+            end_time=timezone.now() + timedelta(seconds=300),
+            status='active'
+        )
+        Timer.objects.create(
+            user=test_user,
+            name='Timer 2',
+            duration_seconds=600,
+            end_time=timezone.now() + timedelta(seconds=600),
+            status='paused'
+        )
+        Timer.objects.create(
+            user=test_user,
+            name='Already Cancelled',
+            duration_seconds=300,
+            end_time=timezone.now() - timedelta(seconds=100),
+            status='cancelled'
+        )
+        
+        response = authenticated_client.post('/api/timers/cancel_all/')
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 2  # Only active and paused
+        assert 'message' in response.data
+        
+        # Verify in database - active and paused should be cancelled
+        active_count = Timer.objects.filter(user=test_user, status='active').count()
+        paused_count = Timer.objects.filter(user=test_user, status='paused').count()
+        cancelled_count = Timer.objects.filter(user=test_user, status='cancelled').count()
+        
+        assert active_count == 0
+        assert paused_count == 0
+        assert cancelled_count == 3  # 2 newly cancelled + 1 already cancelled
+    
+    @patch('asgiref.sync.async_to_sync')
+    def test_cancel_all_timers_when_none_active(self, mock_async, authenticated_client, test_user):
+        """POST /api/timers/cancel_all/ with no active timers."""
+        response = authenticated_client.post('/api/timers/cancel_all/')
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 0
+    
+    @patch('apps.api.views.async_to_sync')
+    def test_cancel_all_sends_websocket(self, mock_async, authenticated_client, test_user):
+        """Verify WebSocket notification sent when cancelling all."""
+        Timer.objects.create(
+            user=test_user,
+            name='Timer to Cancel',
+            duration_seconds=300,
+            end_time=timezone.now() + timedelta(seconds=300),
+            status='active'
+        )
+        
+        response = authenticated_client.post('/api/timers/cancel_all/')
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        # Verify WebSocket was called (it's called in the view)
+        assert mock_async.called
 
 
 @pytest.mark.django_db

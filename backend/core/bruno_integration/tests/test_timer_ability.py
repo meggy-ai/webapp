@@ -293,3 +293,131 @@ class TestTimerAbilityNameExtraction:
         name = timer_ability._extract_timer_name("coffee timer for 5 mins", 5)
         
         assert 'coffee' in name.lower()
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+class TestTimerAbilityIntegration:
+    """Integration tests for handle_timer_command - full flow."""
+    
+    @pytest.fixture
+    def timer_ability(self):
+        """Create TimerAbility instance."""
+        return TimerAbility()
+    
+    async def test_handle_timer_command_cancel_all(self, timer_ability, test_user):
+        """Test full flow of 'cancel all timers' message."""
+        # Create multiple active timers
+        await sync_to_async(Timer.objects.create)(
+            user=test_user,
+            name='Timer 1',
+            duration_seconds=300,
+            end_time=timezone.now() + timedelta(seconds=300),
+            status='active'
+        )
+        await sync_to_async(Timer.objects.create)(
+            user=test_user,
+            name='Timer 2',
+            duration_seconds=600,
+            end_time=timezone.now() + timedelta(seconds=600),
+            status='active'
+        )
+        
+        # Verify timers exist
+        count_before = await sync_to_async(Timer.objects.filter(user=test_user, status='active').count)()
+        assert count_before == 2
+        
+        # Send command through handle_timer_command
+        with patch.object(timer_ability, '_send_timer_websocket_update', new_callable=AsyncMock):
+            response = await timer_ability.handle_timer_command(
+                user_id=str(test_user.id),
+                conversation_id='test-conv',
+                command='cancel all timers'
+            )
+        
+        # Verify response
+        assert response is not None
+        assert '✅' in response or 'cancelled' in response.lower()
+        assert '2' in response
+        
+        # Verify timers are cancelled in database
+        active_count = await sync_to_async(Timer.objects.filter(user=test_user, status='active').count)()
+        cancelled_count = await sync_to_async(Timer.objects.filter(user=test_user, status='cancelled').count)()
+        
+        assert active_count == 0
+        assert cancelled_count == 2
+    
+    async def test_handle_timer_command_create(self, timer_ability, test_user):
+        """Test full flow of creating timer through message."""
+        with patch.object(timer_ability, '_send_timer_websocket_update', new_callable=AsyncMock):
+            response = await timer_ability.handle_timer_command(
+                user_id=str(test_user.id),
+                conversation_id='test-conv',
+                command='set a timer for 5 minutes'
+            )
+        
+        # Verify response
+        assert response is not None
+        assert '✅' in response
+        assert '5 minute' in response
+        
+        # Verify timer created in database
+        timer = await sync_to_async(Timer.objects.filter(user=test_user, status='active').first)()
+        assert timer is not None
+        assert timer.duration_seconds == 300
+    
+    async def test_handle_timer_command_non_timer_message(self, timer_ability, test_user):
+        """Verify non-timer messages return None."""
+        response = await timer_ability.handle_timer_command(
+            user_id=str(test_user.id),
+            conversation_id='test-conv',
+            command='how is the weather today?'
+        )
+        
+        # Should return None for non-timer commands
+        assert response is None
+    
+    async def test_handle_timer_command_cancel_all_variations(self, timer_ability, test_user):
+        """Test various cancel all command phrasings."""
+        # Create a timer
+        await sync_to_async(Timer.objects.create)(
+            user=test_user,
+            name='Test Timer',
+            duration_seconds=300,
+            end_time=timezone.now() + timedelta(seconds=300),
+            status='active'
+        )
+        
+        # Test different phrasings
+        commands = [
+            'cancel all timers',
+            'stop all timers',
+            'delete all timers',
+            'clear all timers',
+        ]
+        
+        for i, command in enumerate(commands):
+            # Recreate timer for each test
+            if i > 0:
+                await sync_to_async(Timer.objects.create)(
+                    user=test_user,
+                    name=f'Test Timer {i}',
+                    duration_seconds=300,
+                    end_time=timezone.now() + timedelta(seconds=300),
+                    status='active'
+                )
+            
+            with patch.object(timer_ability, '_send_timer_websocket_update', new_callable=AsyncMock):
+                response = await timer_ability.handle_timer_command(
+                    user_id=str(test_user.id),
+                    conversation_id='test-conv',
+                    command=command
+                )
+            
+            # Verify it worked
+            assert response is not None, f"Command '{command}' returned None"
+            assert 'cancelled' in response.lower() or '✅' in response, f"Command '{command}' didn't cancel: {response}"
+            
+            # Verify timer was cancelled
+            active_count = await sync_to_async(Timer.objects.filter(user=test_user, status='active').count)()
+            assert active_count == 0, f"Command '{command}' didn't cancel timer in database"
