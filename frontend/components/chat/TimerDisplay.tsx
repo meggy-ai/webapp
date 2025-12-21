@@ -16,18 +16,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-interface Timer {
-  id: string;
-  name: string;
-  duration_seconds: number;
-  end_time: string;
-  status: "active" | "paused" | "completed" | "cancelled";
-  time_remaining: number;
-  time_remaining_display: string;
-  three_minute_warning_sent: boolean;
-  completion_notification_sent: boolean;
-}
+import {
+  Timer,
+  formatTime,
+  getClientTimeRemaining,
+  getTimerColor,
+  getProgressPercentage,
+} from "@/lib/timer-utils";
 
 interface TimerDisplayProps {
   onTimerUpdate?: () => void;
@@ -75,21 +70,6 @@ export default function TimerDisplay({
       }
     }
   }, [wsEvent]);
-
-  // Calculate remaining time based on end_time (client-side)
-  const getClientTimeRemaining = (timer: Timer): number => {
-    if (timer.status === "paused") {
-      return timer.time_remaining;
-    }
-    if (timer.status !== "active") {
-      return 0;
-    }
-
-    const now = new Date().getTime();
-    const endTime = new Date(timer.end_time).getTime();
-    const remainingMs = endTime - now;
-    return Math.max(0, Math.floor(remainingMs / 1000));
-  };
 
   // Update countdown display every second (local only, no API call)
   useEffect(() => {
@@ -164,32 +144,6 @@ export default function TimerDisplay({
     } catch (error) {
       console.error("Error cancelling all timers:", error);
     }
-  };
-
-  const formatTime = (seconds: number): string => {
-    if (seconds < 0) return "00:00:00";
-
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const getTimerColor = (timer: Timer): string => {
-    const remaining = getClientTimeRemaining(timer);
-    if (timer.status === "paused") return "text-zinc-400 dark:text-zinc-500";
-    if (remaining <= 180) return "text-rose-500 dark:text-rose-400"; // 3 minutes or less - softer red
-    if (remaining <= 600) return "text-amber-500 dark:text-amber-400"; // 10 minutes or less - warmer yellow
-    return "text-emerald-500 dark:text-emerald-400"; // softer green
-  };
-
-  const getProgressPercentage = (timer: Timer): number => {
-    const remaining = getClientTimeRemaining(timer);
-    const elapsed = timer.duration_seconds - remaining;
-    return (elapsed / timer.duration_seconds) * 100;
   };
 
   if (loading) {
