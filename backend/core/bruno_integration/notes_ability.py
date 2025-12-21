@@ -121,7 +121,7 @@ class NotesAbility:
 You don't have any notes yet!
 
 💡 Options:
-• Say 'create [name]' to add a note
+• Say 'add [name]' to add a note
 • Say 'exit' or 'close' to leave notes"""
         
         lines = ["📋 Your Notes:", ""]
@@ -132,7 +132,7 @@ You don't have any notes yet!
             "",
             "💡 Options:",
             "• Say a note ID to open it (e.g., '1')",
-            "• Say 'create [name]' to add a note",
+            "• Say 'add [name]' to add a note",
             "• Say 'rename [ID] [new name]' to rename a note",
             "• Say 'delete [ID]' to remove a note",
             "• Say 'exit' or 'close' to leave notes"
@@ -154,10 +154,10 @@ You don't have any notes yet!
             return "👋 Exited notes. Your notes are saved!"
         
         # Create new note
-        if command.startswith('create '):
-            note_name = command[7:].strip()
+        if command.startswith('add '):
+            note_name = command[4:].strip()
             if not note_name:
-                return "Please provide a name for the note. Try 'create [name]'"
+                return "Please provide a name for the note. Try 'add [name]'"
             
             @sync_to_async
             def create_note():
@@ -253,7 +253,7 @@ You don't have any notes yet!
         except ValueError:
             pass
         
-        return "I didn't understand that command. Try 'create [name]', a note number, or 'exit'."
+        return "I didn't understand that command. Try 'add note', a note number, or 'exit'."
     
     async def _show_note_detail(self, note_id: str) -> str:
         """Show details of a specific note."""
