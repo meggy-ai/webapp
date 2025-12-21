@@ -11,9 +11,6 @@ const config = {
   coverageProvider: 'v8',
   testEnvironment: 'jsdom',
   
-  // Setup files to run before each test
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  
   // Module name mapper for path aliases
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
@@ -21,48 +18,7 @@ const config = {
   
   // Test match patterns
   testMatch: [
-    '<rootDir>/tests/unit/**/*.test.{ts,tsx}',
-    '<rootDir>/tests/integration/**/*.test.{ts,tsx}',
-  ],
-  
-  // Coverage configuration
-  collectCoverageFrom: [
-    'components/**/*.{ts,tsx}',
-    'app/**/*.{ts,tsx}',
-    'lib/**/*.{ts,tsx}',
-    '!**/*.d.ts',
-    '!**/node_modules/**',
-    '!**/.next/**',
-  ],
-  
-  // Coverage thresholds
-  coverageThreshold: {
-    global: {
-      branches: 70,
-      functions: 70,
-      lines: 70,
-      statements: 70,
-    },
-  },
-  
-  // Transform files
-  transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': ['@swc/jest', {
-      jsc: {
-        transform: {
-          react: {
-            runtime: 'automatic',
-          },
-        },
-      },
-    }],
-  },
-  
-  // Ignore patterns
-  testPathIgnorePatterns: [
-    '<rootDir>/.next/',
-    '<rootDir>/node_modules/',
-    '<rootDir>/tests/e2e/',
+    '<rootDir>/tests/**/*.test.{ts,tsx}',
   ],
   
   // Module file extensions

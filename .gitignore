@@ -2,6 +2,9 @@
 # MONOREPO ROOT .gitignore
 # ================================
 
+# Frontend Test results
+frontend/test-results/
+frontend/playwright-report/
 # Environment variables
 .env
 .env.local
