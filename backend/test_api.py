@@ -1,12 +1,18 @@
 """
 Test script for Bruno PA API endpoints.
 Run this script to test authentication and basic API functionality.
+
+These are integration tests that require a running server.
+Skip them in pytest by default.
 """
 
+import pytest
 import requests
 import json
 
 BASE_URL = "http://127.0.0.1:8000/api"
+
+pytestmark = pytest.mark.integration
 
 def print_response(response):
     """Pretty print response."""
@@ -16,6 +22,41 @@ def print_response(response):
     except:
         print(response.text)
     print("-" * 80)
+
+@pytest.fixture(scope="module")
+def auth_tokens():
+    """Get authentication tokens for testing."""
+    # Try to register
+    data = {
+        "email": "test@example.com",
+        "name": "Test User",
+        "password": "testpassword123"
+    }
+    response = requests.post(f"{BASE_URL}/auth/register/", json=data)
+    
+    if response.status_code == 201:
+        return response.json()
+    
+    # If registration fails (user exists), try login
+    login_data = {
+        "email": "test@example.com",
+        "password": "testpassword123"
+    }
+    response = requests.post(f"{BASE_URL}/auth/login/", json=login_data)
+    if response.status_code == 200:
+        return response.json()
+    
+    pytest.fail("Could not authenticate for tests")
+
+@pytest.fixture(scope="module")
+def access_token(auth_tokens):
+    """Get access token."""
+    return auth_tokens['access_token']
+
+@pytest.fixture(scope="module")
+def refresh_token(auth_tokens):
+    """Get refresh token."""
+    return auth_tokens['refresh_token']
 
 def test_register():
     """Test user registration."""
@@ -42,9 +83,9 @@ def test_login():
     response = requests.post(f"{BASE_URL}/auth/login/", json=data)
     print_response(response)
     
-    if response.status_code == 200:
-        return response.json()
-    return None
+    assert response.status_code == 200
+    assert 'access_token' in response.json()
+    assert 'refresh_token' in response.json()
 
 def test_me(access_token):
     """Test getting current user info."""
@@ -114,9 +155,8 @@ def test_refresh_token(refresh_token):
     response = requests.post(f"{BASE_URL}/auth/refresh/", json=data)
     print_response(response)
     
-    if response.status_code == 200:
-        return response.json()['access_token']
-    return None
+    assert response.status_code == 200
+    assert 'access_token' in response.json()
 
 def main():
     print("=" * 80)

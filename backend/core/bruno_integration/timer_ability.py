@@ -337,8 +337,6 @@ class TimerAbility:
     async def _send_timer_websocket_update(self, user_id: str, action: str, timer_id: str = None, message: str = None):
         """Send WebSocket update for timer actions."""
         try:
-            from asgiref.sync import async_to_sync
-            
             group_name = f"chat_{user_id}"
             update_data = {
                 'type': 'timer_update',
@@ -349,8 +347,9 @@ class TimerAbility:
             if timer_id:
                 update_data['timer_id'] = timer_id
             
-            # Use async_to_sync since we're in async context but channel layer expects sync
-            async_to_sync(self.channel_layer.group_send)(group_name, update_data)
+            # Call channel layer group_send directly in async context
+            if self.channel_layer:
+                await self.channel_layer.group_send(group_name, update_data)
             
             logger.info(f"⏱️  Sent WebSocket update: {action} to group {group_name}")
             
