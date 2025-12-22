@@ -411,7 +411,7 @@ export default function ChatPage() {
               <button
                 title="Timers"
                 onClick={() => setShowTimers(!showTimers)}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`p-2 rounded-lg transition-colors hidden sm:flex ${
                   showTimers
                     ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400"
                     : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
