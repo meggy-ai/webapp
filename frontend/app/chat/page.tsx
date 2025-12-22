@@ -378,8 +378,8 @@ export default function ChatPage() {
       <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Connecting to Meggy...
+          <p className="text-zinc-700 dark:text-zinc-300">
+            Meggy is getting ready to chat with you...
           </p>
         </div>
       </div>
@@ -390,7 +390,7 @@ export default function ChatPage() {
     <div className="h-screen bg-white dark:bg-zinc-950 flex flex-col">
       {/* Header */}
       <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-6">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
           {/* Left: Meggy branding */}
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg">
@@ -398,16 +398,16 @@ export default function ChatPage() {
             </div>
             <div>
               <h1 className="font-bold text-lg text-indigo-600">Meggy AI</h1>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 hidden sm:block">
                 Your AI Companion
               </p>
             </div>
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Quick Actions */}
-            <div className="flex items-center gap-2 mr-4">
+            <div className="flex items-center gap-1 sm:gap-2 mr-2 sm:mr-4">
               <button
                 title="Timers"
                 onClick={() => setShowTimers(!showTimers)}
@@ -417,17 +417,17 @@ export default function ChatPage() {
                     : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
                 }`}
               >
-                <Clock className="h-5 w-5" />
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               <button
                 title="Reminders"
-                className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors hidden sm:flex"
               >
                 <BellRing className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
               </button>
               <button
                 title="Notes"
-                className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors hidden sm:flex"
               >
                 <StickyNote className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
               </button>
@@ -435,22 +435,22 @@ export default function ChatPage() {
 
             <Link
               href="/dashboard"
-              className="text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors hidden sm:block"
             >
               Dashboard
             </Link>
             <Link
               href="/settings"
-              className="text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors hidden sm:block"
             >
               Settings
             </Link>
             <button
               onClick={handleLogout}
-              className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all"
+              className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-2 sm:px-3 text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all"
             >
               <LogOut className="h-4 w-4" />
-              Logout
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
@@ -464,13 +464,13 @@ export default function ChatPage() {
           <div
             ref={messagesContainerRef}
             onScroll={handleScroll}
-            className="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-zinc-950"
+            className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6 bg-white dark:bg-zinc-950"
           >
             {/* Loading more indicator */}
             {isLoadingMore && (
               <div className="text-center py-2">
                 <Loader2 className="h-5 w-5 animate-spin text-indigo-600 mx-auto" />
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
                   Loading more messages...
                 </p>
               </div>
@@ -498,20 +498,18 @@ export default function ChatPage() {
 
             {messages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
-                <div className="text-center max-w-md">
-                  <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl mb-6">
-                    <Sparkles className="h-10 w-10" />
+                <div className="text-center max-w-sm sm:max-w-md px-4">
+                  <div className="inline-flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl mb-6">
+                    <Sparkles className="h-8 w-8 sm:h-10 sm:w-10" />
                   </div>
-                  <h2 className="text-3xl font-bold text-zinc-900 dark:text-white mb-3">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white mb-3">
                     Hey there! I'm Meggy 👋
                   </h2>
-                  <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-4">
-                    Your always-on AI companion. I'm here to chat, help, and
-                    learn about you over time.
+                  <p className="text-base sm:text-lg text-zinc-700 dark:text-zinc-300 mb-4">
+                    I'm your empathetic AI companion. I'm here to listen, chat, and learn about you over time.
                   </p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                    I can set timers, create reminders, take notes, and much
-                    more. Let's start our conversation!
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Share your thoughts, set timers, or just have a meaningful conversation. I'm always here for you!
                   </p>
                 </div>
               </div>
@@ -520,33 +518,33 @@ export default function ChatPage() {
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex gap-4 ${
+                    className={`flex gap-3 sm:gap-4 ${
                       message.role === "user" ? "flex-row-reverse" : ""
                     }`}
                   >
                     <div
-                      className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
+                      className={`flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center ${
                         message.role === "user"
                           ? "bg-zinc-200 dark:bg-zinc-700"
                           : "bg-gradient-to-br from-indigo-500 to-indigo-600"
                       }`}
                     >
                       {message.role === "user" ? (
-                        <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                        <span className="text-xs sm:text-sm font-semibold text-zinc-700 dark:text-zinc-200">
                           {user?.name?.[0]?.toUpperCase() || "U"}
                         </span>
                       ) : (
-                        <Bot className="h-5 w-5 text-white" />
+                        <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                       )}
                     </div>
 
                     <div
-                      className={`flex-1 max-w-2xl ${
+                      className={`flex-1 max-w-xs sm:max-w-2xl ${
                         message.role === "user" ? "text-right" : ""
                       }`}
                     >
                       <div
-                        className={`inline-block rounded-2xl px-5 py-3 ${
+                        className={`inline-block rounded-2xl px-4 py-2 sm:px-5 sm:py-3 ${
                           message.role === "user"
                             ? "bg-indigo-600 text-white"
                             : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
@@ -556,7 +554,7 @@ export default function ChatPage() {
                           {message.content}
                         </p>
                       </div>
-                      <p className="text-xs text-zinc-500 mt-2 px-2">
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-2 px-2">
                         {message.timestamp &&
                         !isNaN(new Date(message.timestamp).getTime())
                           ? new Date(message.timestamp).toLocaleTimeString(
@@ -573,15 +571,15 @@ export default function ChatPage() {
                   </div>
                 ))}
 
-                {/* Bruno Thinking Animation */}
+                {/* Meggy Thinking Animation */}
                 {isSending && (
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-indigo-600 animate-pulse">
-                      <Bot className="h-5 w-5 text-white" />
+                  <div className="flex gap-3 sm:gap-4">
+                    <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-indigo-600 animate-pulse">
+                      <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                     </div>
 
-                    <div className="flex-1 max-w-2xl">
-                      <div className="inline-block rounded-2xl px-5 py-4 bg-zinc-100 dark:bg-zinc-800">
+                    <div className="flex-1 max-w-xs sm:max-w-2xl">
+                      <div className="inline-block rounded-2xl px-4 py-3 sm:px-5 sm:py-4 bg-zinc-100 dark:bg-zinc-800">
                         <div className="flex items-center gap-3">
                           {/* Animated thinking dots */}
                           <div className="flex gap-1.5">
@@ -604,7 +602,7 @@ export default function ChatPage() {
                             style={{ animationDuration: "3s" }}
                           />
                         </div>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-2">
                           Meggy is thinking...
                         </p>
                       </div>
@@ -617,31 +615,31 @@ export default function ChatPage() {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4">
-            <form onSubmit={handleSendMessage} className="flex gap-3">
+          <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 sm:p-4">
+            <form onSubmit={handleSendMessage} className="flex gap-2 sm:gap-3">
               <input
                 ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Chat with Meggy..."
+                placeholder="Share what's on your mind - I'm here to listen..."
                 disabled={isSending}
                 autoFocus
-                className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-5 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
+                className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2.5 sm:px-5 sm:py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 min-h-[44px]"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isSending}
-                className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+                className="inline-flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl min-w-[44px]"
               >
                 {isSending ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                 ) : (
-                  <Send className="h-5 w-5" />
+                  <Send className="h-4 w-4 sm:h-5 sm:w-5" />
                 )}
               </button>
             </form>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center mt-3">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center mt-2 sm:mt-3 px-1">
               Meggy is always learning and improving. Your privacy is protected.
             </p>
           </div>
