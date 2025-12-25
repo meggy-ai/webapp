@@ -14,48 +14,48 @@ class CommandDetector:
     
     DETECTION_PROMPT = """You are a command detector. Your job is to determine if a user message is a COMMAND or a CONVERSATION.
 
-Commands are requests that require ACTION, such as:
-- Setting timers, reminders, or alarms
-- Creating, updating, or deleting notes
-- Managing tasks or to-do items
-- Performing calculations
-- Looking up information that requires tool usage
+            Commands are requests that require ACTION, such as:
+            - Setting timers, reminders, or alarms
+            - Creating, updating, or deleting notes
+            - Managing tasks or to-do items
+            - Performing calculations
+            - Looking up information that requires tool usage
 
-Conversations are:
-- Greetings, small talk, or general chat
-- Questions about concepts or explanations
-- Discussions that don't require specific actions
-- Follow-up questions about previous topics
+            Conversations are:
+            - Greetings, small talk, or general chat
+            - Questions about concepts or explanations
+            - Discussions that don't require specific actions
+            - Follow-up questions about previous topics
 
-Analyze the message and respond with ONLY a JSON object in this exact format:
-{"is_command": true/false, "command_type": "timer|reminder|note|task|calculation|lookup|other", "confidence": 0.0-1.0}
+            Analyze the message and respond with ONLY a JSON object in this exact format:
+            {{"is_command": true/false, "command_type": "timer|reminder|note|task|calculation|lookup|other", "confidence": 0.0-1.0}}
 
-Examples:
-User: "set a timer for 10 minutes"
-{"is_command": true, "command_type": "timer", "confidence": 0.95}
+            Examples:
+            User: "set a timer for 10 minutes"
+            {{"is_command": true, "command_type": "timer", "confidence": 0.95}}
 
-User: "remind me to call mom at 5pm"
-{"is_command": true, "command_type": "reminder", "confidence": 0.9}
+            User: "remind me to call mom at 5pm"
+            {{"is_command": true, "command_type": "reminder", "confidence": 0.9}}
 
-User: "create a note about the meeting"
-{"is_command": true, "command_type": "note", "confidence": 0.85}
+            User: "create a note about the meeting"
+            {{"is_command": true, "command_type": "note", "confidence": 0.85}}
 
-User: "cancel all timers"
-{"is_command": true, "command_type": "timer", "confidence": 0.95}
+            User: "cancel all timers"
+            {{"is_command": true, "command_type": "timer", "confidence": 0.95}}
 
-User: "what's the weather like?"
-{"is_command": false, "command_type": "other", "confidence": 0.8}
+            User: "what's the weather like?"
+            {{"is_command": false, "command_type": "other", "confidence": 0.8}}
 
-User: "how are you?"
-{"is_command": false, "command_type": "other", "confidence": 0.95}
+            User: "how are you?"
+            {{"is_command": false, "command_type": "other", "confidence": 0.95}}
 
-User: "tell me about Python"
-{"is_command": false, "command_type": "other", "confidence": 0.85}
+            User: "tell me about Python"
+            {{"is_command": false, "command_type": "other", "confidence": 0.85}}
 
-Now analyze this message:
-User: "{message}"
+            Now analyze this message:
+            User: "{message}"
 
-Respond with ONLY the JSON object, nothing else."""
+            Respond with ONLY the JSON object, nothing else."""
 
     def __init__(self, llm_client: Optional[OllamaClient] = None):
         """

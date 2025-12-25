@@ -112,7 +112,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
         if not content:
             return Response(
                 {'error': 'Content is required'},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST0
             )
         
         # Delegate to message service for business logic
