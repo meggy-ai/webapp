@@ -61,7 +61,7 @@ class MessageService:
             is_task_command=is_task_command
         )
     
-    def extract_memories_async(self, user: User, content: str, message_id: str) -> None:
+    def extract_memories_async(self, user, content: str, message_id: str) -> None:
         """
         Extract and save long-term memories from user message (async background task).
         
